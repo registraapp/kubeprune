@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>12 AWS cost cuts that don&#x27;t need a re-architecture</title>
+<meta name="description" content="Twelve AWS savings a startup can make without redesigning anything: gp3, gateway endpoints, log retention, Savings Plans, Spot, Graviton, EKS support and more.">
+<link rel="canonical" href="https://kubeprune.com/blog/aws-cost-cuts-without-rearchitecture/">
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+<meta property="og:type" content="article">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="KubePrune">
+<meta property="og:title" content="12 AWS cost cuts that don&#x27;t need a re-architecture">
+<meta property="og:description" content="Twelve AWS savings a startup can make without redesigning anything: gp3, gateway endpoints, log retention, Savings Plans, Spot, Graviton, EKS support and more.">
+<meta property="og:url" content="https://kubeprune.com/blog/aws-cost-cuts-without-rearchitecture/">
+<meta property="article:published_time" content="2026-11-03">
+<meta property="article:modified_time" content="2026-11-03">
+<meta name="author" content="Amine">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#F6F7F2;--ink:#1E2A1F;--soft:#56634F;--rule:#D3D8CB;--field:#B9C2AF;--accent:#3F6B3A;--accent-dark:#335A2F;--accent-tint:#E3EBDC;--ok:#3F6B3A;--ok-tint:#E3EBDC;--warn:#8A6414;--warn-tint:#F5ECD3;--bad:#A4462B;--bad-tint:#F6E4DD;--focus:#2C5FD9;--code-bg:#1E2A1F;--brandw:650;--serif:"Fraunces",Georgia,serif;--sans:"Public Sans",system-ui,sans-serif}
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;overflow-wrap:break-word}
+  :focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+  a{color:var(--ink)}
+  img,svg{max-width:100%}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 20px}
+  header .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:10px 16px;padding:24px 20px;border-bottom:1px solid var(--rule)}
+  .brand{font-family:var(--serif);font-weight:var(--brandw);font-size:26px;text-decoration:none;letter-spacing:-.01em}
+  .brand small{font-family:var(--sans);font-weight:400;font-size:14px;color:var(--soft);margin-left:10px;letter-spacing:0}
+  header nav.mainnav{display:flex;flex-wrap:wrap;gap:6px 20px;align-items:baseline}
+  header nav.mainnav a{margin:0;font-weight:500;text-decoration:none;border-bottom:2px solid transparent;padding-bottom:1px}
+  header nav.mainnav a:hover{border-bottom-color:var(--rule)}
+  header nav.mainnav a[aria-current="page"]{border-bottom-color:currentColor}
+  .hero{padding:64px 0 48px;max-width:820px}
+  h1{font-family:var(--serif);font-weight:var(--brandw);font-size:clamp(31px,4.8vw,50px);line-height:1.1;letter-spacing:-.015em;margin:0 0 20px}
+  .lede{font-size:19px;color:var(--soft);margin:0 0 28px;max-width:62ch}
+  .ctas{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;padding:14px 22px;border-radius:4px;border:2px solid var(--accent);font:inherit;font-weight:600;line-height:1.3;cursor:pointer;text-align:center}
+  .btn:hover{background:var(--accent-dark);border-color:var(--accent-dark)}
+  .btn.ghost{background:transparent;color:var(--ink);border-color:var(--ink)}
+  .btn.ghost:hover{background:var(--accent-tint)}
+  section{padding:56px 0;border-top:1px solid var(--rule)}
+  h2.s{font-family:var(--serif);font-weight:var(--brandw);font-size:30px;line-height:1.2;margin:0 0 10px}
+  .sub{color:var(--soft);max-width:64ch;margin:0 0 28px}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+  .card{background:#fff;border:1px solid var(--rule);border-radius:6px;padding:24px;min-width:0}
+  .card h3{font-family:var(--serif);font-size:21px;margin:0 0 10px;line-height:1.25}
+  .card p{margin:0 0 10px}.card p:last-child{margin-bottom:0}
+  .card ul{padding-left:18px;margin:0}.card li{margin-bottom:7px}
+  .card.paper{background:#fbfbfb}
+  .card.real{border:2px solid var(--accent);background:var(--accent-tint)}
+  .date{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);margin:0 0 6px}
+  .quiz{background:#fff;border:1px solid var(--rule);border-radius:6px;padding:8px 24px 20px}
+  .q{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--rule)}
+  .q:last-of-type{border-bottom:0}
+  .q p{margin:0}.q small{display:block;color:var(--soft);font-size:13px;margin-top:2px}
+  .seg{display:inline-flex;border:1px solid var(--rule);border-radius:4px;overflow:hidden}
+  .seg button{font:inherit;font-size:14px;border:0;background:#fff;padding:7px 12px;cursor:pointer;color:var(--ink);border-left:1px solid var(--rule)}
+  .seg button:first-child{border-left:0}
+  .seg button[aria-pressed="true"].y{background:var(--ok);color:#fff}
+  .seg button[aria-pressed="true"].p{background:var(--warn);color:#fff}
+  .seg button[aria-pressed="true"].n{background:var(--bad);color:#fff}
+  .result{margin-top:22px;border-radius:6px;padding:22px 24px;border:1px solid var(--rule);background:#fff}
+  .result.bad{background:var(--bad-tint);border-color:var(--bad)}
+  .result.mid{background:var(--warn-tint);border-color:var(--warn)}
+  .result.good{background:var(--ok-tint);border-color:var(--ok)}
+  .result h3{font-family:var(--serif);font-size:24px;margin:0 0 8px;line-height:1.2}
+  .result .score{font-size:40px;font-weight:600;font-variant-numeric:tabular-nums}
+  .result ul{margin:10px 0 0;padding-left:18px}
+  .offers{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+  .offers.two{grid-template-columns:1fr 1fr;max-width:820px}
+  .offer{background:#fff;border:1px solid var(--rule);border-radius:6px;padding:24px;min-width:0;display:flex;flex-direction:column}
+  .offer.main{border:2px solid var(--accent);background:var(--accent-tint)}
+  .offer h3{font-family:var(--serif);font-size:22px;margin:0 0 4px;line-height:1.25}
+  .offer .price{font-size:26px;font-weight:600;margin:6px 0 12px;font-variant-numeric:tabular-nums}
+  .offer .price span{font-size:15px;font-weight:400;color:var(--soft)}
+  .offer ul{padding-left:18px;margin:0 0 16px}.offer li{margin-bottom:6px}
+  .offer .btn{margin-top:auto;align-self:flex-start}
+  .after-offers{margin-top:24px}
+  ol.steps{counter-reset:s;list-style:none;padding:0;margin:0;max-width:720px}
+  ol.steps li{counter-increment:s;position:relative;padding:0 0 22px 52px}
+  ol.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:34px;height:34px;border-radius:50%;border:2px solid var(--accent);display:grid;place-items:center;font-weight:600;color:var(--accent)}
+  ol.steps strong{display:block}
+  .guarantee{background:#fff;border-left:5px solid var(--accent);padding:22px 26px;max-width:760px;border-radius:0 6px 6px 0}
+  .guarantee p{margin:0 0 10px}.guarantee p:last-child{margin:0}
+  .checks{columns:2;column-gap:40px;padding-left:18px;max-width:820px;margin:0}
+  .checks li{break-inside:avoid;margin-bottom:8px}
+  form{background:#fff;border:1px solid var(--rule);border-radius:6px;padding:26px;max-width:620px}
+  label{display:block;font-weight:500;margin-bottom:6px}
+  input,select,textarea{width:100%;max-width:100%;font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--field);border-radius:4px;background:#fff;color:var(--ink);margin-bottom:16px}
+  .fine{font-size:14px;color:var(--soft)}
+  .thanks{display:none;background:#fff;border:1px solid var(--rule);border-radius:6px;padding:26px;max-width:620px}
+  .contact-grid{display:grid;grid-template-columns:minmax(0,620px) minmax(0,1fr);gap:32px;align-items:start}
+  .side{background:#fff;border:1px solid var(--rule);border-radius:6px;padding:22px 24px}
+  .side h3{font-family:var(--serif);font-size:20px;margin:0 0 8px}
+  .side p{margin:0 0 14px}
+  footer{border-top:1px solid var(--rule);padding:30px 0 48px;color:var(--soft);font-size:14px}
+  footer p{margin:0 0 10px}
+  .faq{max-width:780px}
+  .faq details{border-bottom:1px solid var(--rule);padding:14px 0}
+  .faq summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:16px}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary::after{content:"+";font-weight:400;font-size:22px;line-height:1}
+  .faq details[open] summary::after{content:"\2212"}
+  .faq details p{margin:10px 0 0;color:var(--soft)}
+  .tbl{overflow-x:auto;margin:0 0 20px;border:1px solid var(--rule);border-radius:6px;background:#fff}
+  .tbl table{border-collapse:collapse;width:100%;font-size:15px;line-height:1.5}
+  .tbl caption{text-align:left;font-size:14px;color:var(--soft);padding:12px 14px 0}
+  .tbl th,.tbl td{text-align:left;vertical-align:top;padding:11px 14px;border-bottom:1px solid var(--rule)}
+  .tbl thead th{background:var(--accent-tint);font-weight:600}
+  .tbl tr:last-child td{border-bottom:0}
+  /* guides */
+  .crumb{font-size:14px;color:var(--soft);padding-top:22px}
+  .crumb ol{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px}
+  .crumb li+li::before{content:"\203A";margin:0 6px;color:var(--soft)}
+  .crumb a{color:var(--soft)}
+  .hero.article{padding:40px 0 28px}
+  .hero.article h1{font-size:clamp(29px,4.2vw,44px);line-height:1.13}
+  .meta{font-size:14px;color:var(--soft);margin:0}
+  .answer{background:var(--accent-tint);border:2px solid var(--accent);border-radius:6px;padding:20px 24px;max-width:760px;margin:0 0 8px}
+  .answer p{margin:0}
+  .toc{max-width:740px;font-size:15px;margin:22px 0 0}
+  .toc strong{display:block;margin-bottom:4px}
+  .toc ol{margin:0;padding-left:20px}
+  .prose{max-width:740px;padding-bottom:24px;min-width:0}
+  .prose h2{font-family:var(--serif);font-weight:var(--brandw);font-size:clamp(24px,3.2vw,30px);line-height:1.2;margin:44px 0 12px;padding-top:28px;border-top:1px solid var(--rule)}
+  .prose h3{font-family:var(--serif);font-weight:var(--brandw);font-size:21px;line-height:1.3;margin:28px 0 8px}
+  .prose p,.prose ul,.prose ol{margin:0 0 16px}
+  .prose ul,.prose ol:not(.steps){padding-left:22px}
+  .prose li{margin-bottom:6px}
+  .prose code,.side code,.card code,.fine code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.88em;background:#fff;border:1px solid var(--rule);border-radius:3px;padding:1px 5px;overflow-wrap:anywhere}
+  .prose pre{background:var(--code-bg);color:#E8EDF3;border-radius:6px;padding:16px 18px;overflow-x:auto;font-size:14px;line-height:1.55;margin:0 0 18px;max-width:100%}
+  .prose pre code{background:none;border:0;padding:0;color:inherit;font-size:inherit;overflow-wrap:normal}
+  ul.check{list-style:none;padding-left:0}
+  .prose ul.check{padding-left:0}
+  ul.check li{position:relative;padding-left:30px}
+  ul.check li::before{content:"";position:absolute;left:2px;top:.32em;width:16px;height:16px;border:2px solid var(--accent);border-radius:3px;background:#fff}
+  .cta{background:#fff;border:1px solid var(--rule);border-left:5px solid var(--accent);border-radius:0 6px 6px 0;padding:22px 26px;margin:32px 0 8px}
+  .cta p{margin:0 0 14px}
+  .note{background:var(--warn-tint);border-left:5px solid var(--warn);padding:14px 18px;border-radius:0 6px 6px 0;font-size:15px}
+  .sources ol{padding-left:22px;font-size:15px}
+  .sources li{overflow-wrap:anywhere}
+  .related{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin:0 0 16px}
+  .related a{display:block;background:#fff;border:1px solid var(--rule);border-radius:6px;padding:16px 18px;text-decoration:none}
+  .related a strong{display:block;font-family:var(--serif);font-size:19px;line-height:1.25;margin-bottom:4px}
+  .related a span{color:var(--soft);font-size:15px}
+  .guides{display:grid;gap:20px;max-width:800px;margin-bottom:48px}
+  .guides .card h2{font-family:var(--serif);font-size:24px;line-height:1.25;margin:0 0 8px}
+  .guides .card h2 a{text-decoration:none}
+  .tag{display:inline-block;font-size:13px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+  @media (max-width:860px){
+    .split,.three,.offers,.offers.two,.related,.contact-grid{grid-template-columns:1fr}
+    .q{grid-template-columns:1fr}
+    .hero{padding:44px 0 36px}
+    .checks{columns:1}
+  }
+  @media (max-width:560px){
+    body{font-size:16.5px}
+    .wrap{padding:0 16px}
+    header .wrap{padding:20px 16px}
+    .brand small{display:block;margin:2px 0 0}
+    h2.s{font-size:26px}
+    .quiz{padding:4px 16px 16px}
+    .card,.offer,form,.side,.answer,.cta,.guarantee{padding:18px}
+    .seg button{padding:7px 10px}
+    .tbl{overflow-x:visible}
+    .tbl thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+    .tbl tr{display:block;border-bottom:1px solid var(--rule);padding:6px 0}
+    .tbl tbody tr:last-child{border-bottom:0}
+    .tbl td{display:block;border:0;padding:4px 14px}
+    .tbl td::before{content:attr(data-label);display:block;font-size:12px;font-weight:600;color:var(--soft);text-transform:uppercase;letter-spacing:.04em}
+    .tbl td:first-child{font-weight:600}
+  }
+</style>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "@id": "https://kubeprune.com/#org", "name": "KubePrune", "url": "https://kubeprune.com/", "logo": "https://kubeprune.com/favicon.svg", "address": {"@type": "PostalAddress", "addressCountry": "FR"}, "founder": {"@type": "Person", "name": "Amine", "jobTitle": "Freelance DevOps engineer", "knowsAbout": ["AWS", "Google Cloud", "Microsoft Azure", "Kubernetes", "Terraform"]}, "description": "Fixed-price AWS cost audits and Amazon EKS version upgrades for startups and scale-ups.", "areaServed": [{"@type": "Country", "name": "United States"}, {"@type": "Country", "name": "United Kingdom"}, {"@type": "Country", "name": "Australia"}, {"@type": "Country", "name": "Sweden"}, {"@type": "Country", "name": "Norway"}, {"@type": "Country", "name": "Denmark"}, {"@type": "Country", "name": "Finland"}]}, {"@type": "WebPage", "@id": "https://kubeprune.com/blog/aws-cost-cuts-without-rearchitecture/", "url": "https://kubeprune.com/blog/aws-cost-cuts-without-rearchitecture/", "name": "12 AWS cost cuts that don't need a re-architecture", "description": "Twelve AWS savings a startup can make without redesigning anything: gp3, gateway endpoints, log retention, Savings Plans, Spot, Graviton, EKS support and more.", "inLanguage": "en-US", "isPartOf": {"@type": "WebSite", "@id": "https://kubeprune.com/#site", "url": "https://kubeprune.com/", "name": "KubePrune", "inLanguage": "en-US", "publisher": {"@id": "https://kubeprune.com/#org"}}}, {"@type": "Article", "@id": "https://kubeprune.com/blog/aws-cost-cuts-without-rearchitecture/#article", "headline": "12 AWS cost cuts that don't need a re-architecture", "description": "Twelve AWS savings a startup can make without redesigning anything: gp3, gateway endpoints, log retention, Savings Plans, Spot, Graviton, EKS support and more.", "inLanguage": "en-US", "datePublished": "2026-11-03", "dateModified": "2026-11-03", "author": {"@type": "Person", "name": "Amine", "jobTitle": "Freelance DevOps engineer"}, "publisher": {"@id": "https://kubeprune.com/#org"}, "mainEntityOfPage": {"@id": "https://kubeprune.com/blog/aws-cost-cuts-without-rearchitecture/"}, "url": "https://kubeprune.com/blog/aws-cost-cuts-without-rearchitecture/"}, {"@type": "Service", "@id": "https://kubeprune.com/#service", "name": "Fixed-price AWS cost audit", "serviceType": "Cloud cost optimization (FinOps) audit", "provider": {"@id": "https://kubeprune.com/#org"}, "areaServed": [{"@type": "Country", "name": "United States"}, {"@type": "Country", "name": "United Kingdom"}, {"@type": "Country", "name": "Australia"}, {"@type": "Country", "name": "Sweden"}, {"@type": "Country", "name": "Norway"}, {"@type": "Country", "name": "Denmark"}, {"@type": "Country", "name": "Finland"}], "url": "https://kubeprune.com/", "offers": [{"@type": "Offer", "name": "Free 20-minute bill review", "priceCurrency": "USD", "url": "https://kubeprune.com/#contact", "description": "A short call or async review of your AWS bill to see whether a full audit is worth it.", "price": "0", "priceSpecification": {"@type": "UnitPriceSpecification", "price": "0", "priceCurrency": "USD", "valueAddedTaxIncluded": false}}, {"@type": "Offer", "name": "AWS cost audit", "priceCurrency": "USD", "url": "https://kubeprune.com/#contact", "description": "Read-only IAM access, written report with prioritized savings, Terraform pull requests for the quick wins.", "price": "2400", "priceSpecification": {"@type": "UnitPriceSpecification", "price": "2400", "priceCurrency": "USD", "valueAddedTaxIncluded": false}}, {"@type": "Offer", "name": "Implementation days", "priceCurrency": "USD", "url": "https://kubeprune.com/#contact", "description": "Optional hands-on days to implement the larger savings from the report.", "priceSpecification": {"@type": "PriceSpecification", "priceCurrency": "USD", "valueAddedTaxIncluded": false, "description": "Day rate quoted in writing with the audit report"}}]}, {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://kubeprune.com/"}, {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://kubeprune.com/blog/"}, {"@type": "ListItem", "position": 3, "name": "12 AWS cost cuts", "item": "https://kubeprune.com/blog/aws-cost-cuts-without-rearchitecture/"}]}, {"@type": "FAQPage", "@id": "https://kubeprune.com/blog/aws-cost-cuts-without-rearchitecture/#faq", "mainEntity": [{"@type": "Question", "name": "What is the fastest AWS saving for a startup?", "acceptedAnswer": {"@type": "Answer", "text": "Usually the risk-free ones: deleting unattached volumes and old snapshots, moving gp2 volumes to gp3, and setting log retention. They take hours, not weeks."}}, {"@type": "Question", "name": "Should we buy Savings Plans first?", "acceptedAnswer": {"@type": "Answer", "text": "No. Rightsize and clean up first, then commit to the stable floor of your usage. Committing before that locks in the waste."}}, {"@type": "Question", "name": "Are gateway endpoints really free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. AWS states there is no additional charge for using gateway endpoints, which exist for S3 and DynamoDB. Interface endpoints are billed."}}, {"@type": "Question", "name": "How much does an unused Elastic IP cost?", "acceptedAnswer": {"@type": "Answer", "text": "Since February 1, 2024, AWS charges $0.005 per hour for every public IPv4 address, whether in use or idle."}}]}]}</script>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="brand" href="/">KubePrune<small>AWS and EKS, trimmed</small></a>
+  <nav class="mainnav" aria-label="Main"><a href="/">Cost audit</a><a href="/eks-upgrade/">EKS upgrade</a><a href="/blog/" aria-current="page">Guides</a><a href="/#contact">Contact</a></nav>
+</div></header>
+<main class="wrap">
+  <nav class="crumb" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/blog/">Guides</a></li><li aria-current="page">12 AWS cost cuts</li></ol></nav>
+  <article>
+  <div class="hero article">
+    <span class="tag">AWS costs</span>
+    <h1>12 AWS cost cuts that don't need a re-architecture</h1>
+    <p class="lede">For startups and scale-ups whose AWS bill grew faster than the product. Twelve places to look, how to spot each one with a command or a report, and the figures AWS itself publishes.</p>
+    <p class="meta">By Amine, freelance DevOps engineer · <time datetime="2026-11-03">Updated November 3, 2026</time></p>
+  </div>
+  <div class="answer"><p>Most AWS savings that don't need a redesign come from the same twelve places: oversized resources and pod requests, non-production running 24/7, orphaned volumes, NAT gateway traffic to S3, gp2 volumes, missing Savings Plans, no Spot, x86 by default, S3 without lifecycle rules, logs kept forever, unused public IPv4 addresses, and EKS clusters on extended support. Each one can be found with a few commands.</p></div>
+  <nav class="toc" aria-label="In this guide"><strong>In this guide</strong><ol><li><a href="#table">The twelve cuts in one table</a></li><li><a href="#order">Where to start</a></li><li><a href="#detail">The detail, one by one</a></li><li><a href="#faq">FAQ</a></li></ol></nav>
+  <div class="prose">
+
+  <h2 id="table">The twelve cuts in one table</h2>
+<div class="tbl"><table><caption>Where to look, and the figure AWS publishes</caption><thead><tr><th scope="col">#</th><th scope="col">Cut</th><th scope="col">How to spot it</th><th scope="col">Published figure</th></tr></thead><tbody>
+<tr><td data-label="#">1</td><td data-label="Cut">Rightsize instances, databases and pod requests</td><td data-label="How to spot it">AWS Compute Optimizer; requests vs. usage</td><td data-label="Published figure">Depends on your workloads</td></tr>
+<tr><td data-label="#">2</td><td data-label="Cut">Schedule non-production</td><td data-label="How to spot it">Hours each environment runs</td><td data-label="Published figure">50 of 168 hours a week = 70% fewer hours (arithmetic)</td></tr>
+<tr><td data-label="#">3</td><td data-label="Cut">Delete unattached volumes and old snapshots</td><td data-label="How to spot it">Volumes in the available state</td><td data-label="Published figure">100% of what they cost</td></tr>
+<tr><td data-label="#">4</td><td data-label="Cut">Route S3 and DynamoDB traffic through gateway endpoints</td><td data-label="How to spot it">NAT gateway bytes processed</td><td data-label="Published figure">Gateway endpoints: no extra charge</td></tr>
+<tr><td data-label="#">5</td><td data-label="Cut">Move gp2 volumes to gp3</td><td data-label="How to spot it">Volumes of type gp2</td><td data-label="Published figure">gp3 is 20% cheaper per GB-month</td></tr>
+<tr><td data-label="#">6</td><td data-label="Cut">Cover your baseline with Savings Plans</td><td data-label="How to spot it">Cost Explorer coverage report</td><td data-label="Published figure">Up to 66% (Compute) or 72% (EC2 Instance)</td></tr>
+<tr><td data-label="#">7</td><td data-label="Cut">Use Spot for interruptible work</td><td data-label="How to spot it">CI runners, batch, stateless nodes</td><td data-label="Published figure">Up to 90% off On-Demand</td></tr>
+<tr><td data-label="#">8</td><td data-label="Cut">Move to Graviton</td><td data-label="How to spot it">x86 instance families in use</td><td data-label="Published figure">Up to 20% lower cost (EC2)</td></tr>
+<tr><td data-label="#">9</td><td data-label="Cut">Add S3 lifecycle rules</td><td data-label="How to spot it">Buckets with no lifecycle configuration</td><td data-label="Published figure">Depends on storage classes</td></tr>
+<tr><td data-label="#">10</td><td data-label="Cut">Set CloudWatch Logs retention</td><td data-label="How to spot it">Log groups with no retention</td><td data-label="Published figure">Kept forever by default</td></tr>
+<tr><td data-label="#">11</td><td data-label="Cut">Release unused public IPv4 addresses</td><td data-label="How to spot it">Public IP Insights</td><td data-label="Published figure">$0.005 per IP per hour</td></tr>
+<tr><td data-label="#">12</td><td data-label="Cut">Get EKS clusters off extended support</td><td data-label="How to spot it">Cluster version and upgrade policy</td><td data-label="Published figure">$0.60 vs $0.10 per cluster-hour</td></tr>
+</tbody></table></div>
+
+  <p>The percentages are maximums announced by AWS, not averages. Your savings depend on your bill, which is why we don't quote a typical number.</p>
+
+  <h2 id="order">Where to start</h2>
+  <p>Order matters. Start with what is safe and immediate: orphaned resources (3), gp3 (5), log retention (10), unused IPs (11). Then the changes that need measurement: rightsizing (1), schedules (2), Graviton (8), Spot (7). Commitments (6) come last, once the base is stable. Committing for three years to instances you were about to halve just locks the waste in.</p>
+
+  <h2 id="detail">The detail, one by one</h2>
+  <h3>1. Rightsize instances, databases and pod requests</h3>
+  <p>AWS Compute Optimizer analyzes EC2 instances, Auto Scaling groups, EBS volumes and Lambda functions and recommends better-fitting types.</p>
+<pre><code>aws compute-optimizer get-ec2-instance-recommendations \
+  --query "instanceRecommendations[].[instanceArn,finding,recommendationOptions[0].instanceType]" \
+  --output table</code></pre>
+  <p>Two cautions. Size for peaks, not averages. And without the CloudWatch agent, Compute Optimizer doesn't see EC2 memory, so a CPU-only recommendation can undersize a memory-hungry app. On Kubernetes, requests decide how many nodes you pay for, not actual usage: compare requests with real consumption before touching node types.</p>
+
+  <h3>2. Schedule non-production</h3>
+  <p>A staging environment up 10 hours a day, 5 days a week, runs 50 of 168 hours: 70% fewer hours. That's arithmetic, not a statistic, and it only applies to resources billed by the hour. The Instance Scheduler on AWS solution stops and starts EC2 and RDS on a schedule. On EKS, scale node groups to zero after hours or let Karpenter remove empty nodes. Note that a stopped RDS instance starts again on its own after seven days.</p>
+
+  <h3>3. Delete unattached volumes and old snapshots</h3>
+  <p>A detached EBS volume is still billed. So are snapshots, long after the volume or AMI they belonged to is gone.</p>
+<pre><code># Unattached volumes
+aws ec2 describe-volumes --filters Name=status,Values=available \
+  --query "Volumes[].[VolumeId,Size,VolumeType,CreateTime]" --output table
+# Your snapshots, oldest first
+aws ec2 describe-snapshots --owner-ids self \
+  --query "sort_by(Snapshots,&amp;StartTime)[].[SnapshotId,VolumeId,VolumeSize,StartTime]" --output table</code></pre>
+  <p>On EKS, orphaned volumes often come from PersistentVolumes with a Retain policy whose claim is gone.</p>
+
+  <h3>4. Route S3 and DynamoDB traffic through gateway endpoints</h3>
+  <p>A NAT gateway is billed twice: per hour and per gigabyte processed. The classic trap is private-subnet nodes pulling data from S3 through the NAT. In Cost Explorer, group by usage type and look for NAT gateway bytes. Gateway VPC endpoints for S3 and DynamoDB come at no additional charge, which makes them the best value fix in this list. Interface endpoints, for ECR for example, are billed: compare their cost with the traffic before adding them.</p>
+
+  <h3>5. Move gp2 volumes to gp3</h3>
+  <p>gp3 costs 20% less per GB-month than gp2 ($0.08 vs $0.10 in AWS's example) and includes a baseline of 3,000 IOPS and 125 MiB/s whatever the size. The change is made on the volume with Elastic Volumes:</p>
+<pre><code>aws ec2 describe-volumes --filters Name=volume-type,Values=gp2 \
+  --query "Volumes[].[VolumeId,Size,Iops]" --output table
+aws ec2 modify-volume --volume-id vol-0123456789abcdef0 --volume-type gp3</code></pre>
+  <p>A gp2 volume over 1 TiB has more than 3,000 baseline IOPS: provision the same on gp3. On Kubernetes, make a gp3 StorageClass with the EBS CSI driver the default, or new volumes keep coming in as gp2.</p>
+
+  <h3>6. Cover your baseline with Savings Plans</h3>
+  <p>According to AWS, Compute Savings Plans cut up to 66% off On-Demand prices, and EC2 Instance Savings Plans and Standard Reserved Instances up to 72%, for one- or three-year terms. Compute Savings Plans apply to EC2, Fargate and Lambda without tying you to an instance family, which suits a startup whose architecture still moves. Commit to your floor, not your average.</p>
+
+  <h3>7. Use Spot for interruptible work</h3>
+  <p>AWS advertises Spot Instances at up to 90% off On-Demand. Good candidates are CI runners, batch jobs and stateless Kubernetes nodes spread across several instance types. Bad ones are anything that can't lose a node at short notice.</p>
+
+  <h3>8. Move to Graviton</h3>
+  <p>AWS states that Graviton-based EC2 instances deliver up to 40% better performance at up to 20% lower cost than comparable x86 instances. Managed services such as RDS and ElastiCache are the easiest: an instance type change. For containers you need arm64 or multi-architecture images, built with <code>docker buildx</code>, and compatible native dependencies. Test your real load: the gain depends on your code.</p>
+
+  <h3>9. Add S3 lifecycle rules</h3>
+  <p>A bucket with no lifecycle rule keeps everything in its storage class forever, including old object versions when versioning is on, and abandoned multipart uploads.</p>
+<pre><code>aws s3api get-bucket-lifecycle-configuration --bucket my-bucket</code></pre>
+  <p>A NoSuchLifecycleConfiguration error means no rule. The three rules that come up most: transition to a cheaper class after N days (or S3 Intelligent-Tiering if access is unpredictable), expire noncurrent versions, and AbortIncompleteMultipartUpload.</p>
+
+  <h3>10. Set CloudWatch Logs retention</h3>
+  <p>By default, CloudWatch Logs keeps logs indefinitely. Log groups created automatically by Lambda, EKS or collection agents often have no retention set.</p>
+<pre><code># Log groups with no retention, with stored size
+aws logs describe-log-groups \
+  --query "logGroups[?!retentionInDays].[logGroupName,storedBytes]" --output table
+# Set 30 days on one group
+aws logs put-retention-policy --log-group-name /aws/eks/my-cluster/cluster \
+  --retention-in-days 30</code></pre>
+  <p>Retention cuts storage; ingestion is billed separately. If the line stays high, look at what is being sent.</p>
+
+  <h3>11. Release unused public IPv4 addresses</h3>
+  <p>Since February 1, 2024, AWS charges $0.005 per hour for every public IPv4 address, in use or idle. Public IP Insights in Amazon VPC IP Address Manager lists them. Idle Elastic IPs, forgotten load balancers and nodes in public subnets are the usual suspects.</p>
+
+  <h3>12. Get EKS clusters off extended support</h3>
+  <p>An EKS cluster whose Kubernetes version has left standard support pays $0.60 per cluster-hour instead of $0.10, by default and without anyone opting in. That's about $365 more per cluster per month. The <a href="/blog/eks-extended-support-cost/">cost of EKS extended support</a> guide shows how to check every cluster in a few commands.</p>
+
+  <div class="cta">
+    <p><strong>Want someone to go through all twelve on your account?</strong> The cost audit is $2,400, fixed, with read-only access: a written report with prioritized savings, and Terraform pull requests for the quick wins. The 20-minute bill review is free.</p>
+    <div class="ctas"><a class="btn" href="/#contact">Get a free bill review</a><a class="btn ghost" href="/#contact" data-booking>Book a 30-min call</a></div>
+  </div>
+  <p class="fine">KubePrune is independent and not affiliated with Amazon Web Services. Prices are AWS public list prices checked on November 3, 2026; check the pricing pages for your region and date.</p>
+
+  <h2 id="faq">Frequently asked questions</h2>
+  <div class="faq">
+    <details><summary>What is the fastest AWS saving for a startup?</summary><p>Usually the risk-free ones: deleting unattached volumes and old snapshots, moving gp2 volumes to gp3, and setting log retention. They take hours, not weeks.</p></details>
+    <details><summary>Should we buy Savings Plans first?</summary><p>No. Rightsize and clean up first, then commit to the stable floor of your usage. Committing before that locks in the waste.</p></details>
+    <details><summary>Are gateway endpoints really free?</summary><p>Yes. AWS states there is no additional charge for using gateway endpoints, which exist for S3 and DynamoDB. Interface endpoints are billed.</p></details>
+    <details><summary>How much does an unused Elastic IP cost?</summary><p>Since February 1, 2024, AWS charges $0.005 per hour for every public IPv4 address, whether in use or idle.</p></details>
+  </div>
+
+  <h2 id="sources">Sources</h2>
+  <div class="sources">
+  <ol>
+    <li><a href="https://docs.aws.amazon.com/savingsplans/latest/userguide/sp-ris.html" rel="noopener">AWS Savings Plans and Reserved Instances</a> — up to 66% and 72%.</li>
+    <li><a href="https://aws.amazon.com/ec2/spot/pricing/" rel="noopener">Amazon EC2 Spot Instances pricing</a> — up to 90% off On-Demand.</li>
+    <li><a href="https://aws.amazon.com/ec2/graviton/fast-start/" rel="noopener">AWS Graviton fast start</a> — up to 40% better performance, up to 20% lower cost.</li>
+    <li><a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/optimize-costs-microsoft-workloads/ebs-migrate-gp2-gp3.html" rel="noopener">AWS Prescriptive Guidance: migrate gp2 to gp3</a> — 20% cheaper per GB-month.</li>
+    <li><a href="https://docs.aws.amazon.com/vpc/latest/privatelink/gateway-endpoints.html" rel="noopener">Amazon VPC: Gateway endpoints</a> — no additional charge.</li>
+    <li><a href="https://aws.amazon.com/blogs/aws/new-aws-public-ipv4-address-charge-public-ip-insights/" rel="noopener">AWS News Blog: public IPv4 address charge</a> — $0.005 per IP per hour from February 1, 2024.</li>
+    <li><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html" rel="noopener">What is Amazon CloudWatch Logs?</a> — logs kept indefinitely by default.</li>
+    <li><a href="https://aws.amazon.com/eks/pricing/" rel="noopener">Amazon EKS pricing</a> — standard and extended support.</li>
+  </ol>
+  <p class="fine">Checked November 3, 2026. Prices vary by region; check the pricing pages for yours.</p>
+  </div>
+
+  <h2>Related</h2>
+  <div class="related">
+    <a href="The KubePrune cost audit"><strong>/</strong><span>$2,400 fixed, read-only, Terraform PRs.</span></a>
+    <a href="The real cost of EKS extended support"><strong>/blog/eks-extended-support-cost/</strong><span>$4,380 a year per cluster at list price.</span></a>
+    <a href="EKS upgrade checklist"><strong>/blog/eks-upgrade-checklist/</strong><span>The steps, in order.</span></a>
+  </div>
+  </div>
+  </article>
+</main>
+<footer><div class="wrap">
+  <p>KubePrune: <a href="/">fixed-price AWS cost audits</a> and <a href="/eks-upgrade/">fixed-price EKS upgrades</a> for startups and scale-ups in the US, the UK, Australia and the Nordics. Run by Amine, a freelance DevOps engineer based in France (EU), working with AWS, Google Cloud, Azure, Kubernetes and Terraform. Prices in USD, excluding taxes.</p>
+  <p>AWS prices quoted on this site are public list prices checked on November 3, 2026, before discounts and taxes. KubePrune is independent and not affiliated with Amazon Web Services.</p>
+  <p><a href="/blog/"><strong>Guides</strong></a>: <a href="/blog/eks-extended-support-cost/">The real cost of EKS extended support</a> · <a href="/blog/eks-upgrade-checklist/">EKS upgrade checklist</a> · <a href="/blog/aws-cost-cuts-without-rearchitecture/">12 AWS cost cuts that don't need a re-architecture</a></p>
+</div></footer>
+</body>
+</html>

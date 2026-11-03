@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fixed-price EKS upgrade off extended support | KubePrune</title>
+<meta name="description" content="EKS extended support costs $0.60 per cluster-hour vs $0.10 standard. Free readiness check, then a $3,900 fixed-price upgrade per cluster with a tested rollback.">
+<link rel="canonical" href="https://kubeprune.com/eks-upgrade/">
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="KubePrune">
+<meta property="og:title" content="Fixed-price EKS upgrade off extended support | KubePrune">
+<meta property="og:description" content="EKS extended support costs $0.60 per cluster-hour vs $0.10 standard. Free readiness check, then a $3,900 fixed-price upgrade per cluster with a tested rollback.">
+<meta property="og:url" content="https://kubeprune.com/eks-upgrade/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#F6F7F2;--ink:#1E2A1F;--soft:#56634F;--rule:#D3D8CB;--field:#B9C2AF;--accent:#3F6B3A;--accent-dark:#335A2F;--accent-tint:#E3EBDC;--ok:#3F6B3A;--ok-tint:#E3EBDC;--warn:#8A6414;--warn-tint:#F5ECD3;--bad:#A4462B;--bad-tint:#F6E4DD;--focus:#2C5FD9;--code-bg:#1E2A1F;--brandw:650;--serif:"Fraunces",Georgia,serif;--sans:"Public Sans",system-ui,sans-serif}
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;overflow-wrap:break-word}
+  :focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+  a{color:var(--ink)}
+  img,svg{max-width:100%}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 20px}
+  header .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:10px 16px;padding:24px 20px;border-bottom:1px solid var(--rule)}
+  .brand{font-family:var(--serif);font-weight:var(--brandw);font-size:26px;text-decoration:none;letter-spacing:-.01em}
+  .brand small{font-family:var(--sans);font-weight:400;font-size:14px;color:var(--soft);margin-left:10px;letter-spacing:0}
+  header nav.mainnav{display:flex;flex-wrap:wrap;gap:6px 20px;align-items:baseline}
+  header nav.mainnav a{margin:0;font-weight:500;text-decoration:none;border-bottom:2px solid transparent;padding-bottom:1px}
+  header nav.mainnav a:hover{border-bottom-color:var(--rule)}
+  header nav.mainnav a[aria-current="page"]{border-bottom-color:currentColor}
+  .hero{padding:64px 0 48px;max-width:820px}
+  h1{font-family:var(--serif);font-weight:var(--brandw);font-size:clamp(31px,4.8vw,50px);line-height:1.1;letter-spacing:-.015em;margin:0 0 20px}
+  .lede{font-size:19px;color:var(--soft);margin:0 0 28px;max-width:62ch}
+  .ctas{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;padding:14px 22px;border-radius:4px;border:2px solid var(--accent);font:inherit;font-weight:600;line-height:1.3;cursor:pointer;text-align:center}
+  .btn:hover{background:var(--accent-dark);border-color:var(--accent-dark)}
+  .btn.ghost{background:transparent;color:var(--ink);border-color:var(--ink)}
+  .btn.ghost:hover{background:var(--accent-tint)}
+  section{padding:56px 0;border-top:1px solid var(--rule)}
+  h2.s{font-family:var(--serif);font-weight:var(--brandw);font-size:30px;line-height:1.2;margin:0 0 10px}
+  .sub{color:var(--soft);max-width:64ch;margin:0 0 28px}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+  .card{background:#fff;border:1px solid var(--rule);border-radius:6px;padding:24px;min-width:0}
+  .card h3{font-family:var(--serif);font-size:21px;margin:0 0 10px;line-height:1.25}
+  .card p{margin:0 0 10px}.card p:last-child{margin-bottom:0}
+  .card ul{padding-left:18px;margin:0}.card li{margin-bottom:7px}
+  .card.paper{background:#fbfbfb}
+  .card.real{border:2px solid var(--accent);background:var(--accent-tint)}
+  .date{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);margin:0 0 6px}
+  .quiz{background:#fff;border:1px solid var(--rule);border-radius:6px;padding:8px 24px 20px}
+  .q{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--rule)}
+  .q:last-of-type{border-bottom:0}
+  .q p{margin:0}.q small{display:block;color:var(--soft);font-size:13px;margin-top:2px}
+  .seg{display:inline-flex;border:1px solid var(--rule);border-radius:4px;overflow:hidden}
+  .seg button{font:inherit;font-size:14px;border:0;background:#fff;padding:7px 12px;cursor:pointer;color:var(--ink);border-left:1px solid var(--rule)}
+  .seg button:first-child{border-left:0}
+  .seg button[aria-pressed="true"].y{background:var(--ok);color:#fff}
+  .seg button[aria-pressed="true"].p{background:var(--warn);color:#fff}
+  .seg button[aria-pressed="true"].n{background:var(--bad);color:#fff}
+  .result{margin-top:22px;border-radius:6px;padding:22px 24px;border:1px solid var(--rule);background:#fff}
+  .result.bad{background:var(--bad-tint);border-color:var(--bad)}
+  .result.mid{background:var(--warn-tint);border-color:var(--warn)}
+  .result.good{background:var(--ok-tint);border-color:var(--ok)}
+  .result h3{font-family:var(--serif);font-size:24px;margin:0 0 8px;line-height:1.2}
+  .result .score{font-size:40px;font-weight:600;font-variant-numeric:tabular-nums}
+  .result ul{margin:10px 0 0;padding-left:18px}
+  .offers{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+  .offers.two{grid-template-columns:1fr 1fr;max-width:820px}
+  .offer{background:#fff;border:1px solid var(--rule);border-radius:6px;padding:24px;min-width:0;display:flex;flex-direction:column}
+  .offer.main{border:2px solid var(--accent);background:var(--accent-tint)}
+  .offer h3{font-family:var(--serif);font-size:22px;margin:0 0 4px;line-height:1.25}
+  .offer .price{font-size:26px;font-weight:600;margin:6px 0 12px;font-variant-numeric:tabular-nums}
+  .offer .price span{font-size:15px;font-weight:400;color:var(--soft)}
+  .offer ul{padding-left:18px;margin:0 0 16px}.offer li{margin-bottom:6px}
+  .offer .btn{margin-top:auto;align-self:flex-start}
+  .after-offers{margin-top:24px}
+  ol.steps{counter-reset:s;list-style:none;padding:0;margin:0;max-width:720px}
+  ol.steps li{counter-increment:s;position:relative;padding:0 0 22px 52px}
+  ol.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:34px;height:34px;border-radius:50%;border:2px solid var(--accent);display:grid;place-items:center;font-weight:600;color:var(--accent)}
+  ol.steps strong{display:block}
+  .guarantee{background:#fff;border-left:5px solid var(--accent);padding:22px 26px;max-width:760px;border-radius:0 6px 6px 0}
+  .guarantee p{margin:0 0 10px}.guarantee p:last-child{margin:0}
+  .checks{columns:2;column-gap:40px;padding-left:18px;max-width:820px;margin:0}
+  .checks li{break-inside:avoid;margin-bottom:8px}
+  form{background:#fff;border:1px solid var(--rule);border-radius:6px;padding:26px;max-width:620px}
+  label{display:block;font-weight:500;margin-bottom:6px}
+  input,select,textarea{width:100%;max-width:100%;font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--field);border-radius:4px;background:#fff;color:var(--ink);margin-bottom:16px}
+  .fine{font-size:14px;color:var(--soft)}
+  .thanks{display:none;background:#fff;border:1px solid var(--rule);border-radius:6px;padding:26px;max-width:620px}
+  .contact-grid{display:grid;grid-template-columns:minmax(0,620px) minmax(0,1fr);gap:32px;align-items:start}
+  .side{background:#fff;border:1px solid var(--rule);border-radius:6px;padding:22px 24px}
+  .side h3{font-family:var(--serif);font-size:20px;margin:0 0 8px}
+  .side p{margin:0 0 14px}
+  footer{border-top:1px solid var(--rule);padding:30px 0 48px;color:var(--soft);font-size:14px}
+  footer p{margin:0 0 10px}
+  .faq{max-width:780px}
+  .faq details{border-bottom:1px solid var(--rule);padding:14px 0}
+  .faq summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:16px}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary::after{content:"+";font-weight:400;font-size:22px;line-height:1}
+  .faq details[open] summary::after{content:"\2212"}
+  .faq details p{margin:10px 0 0;color:var(--soft)}
+  .tbl{overflow-x:auto;margin:0 0 20px;border:1px solid var(--rule);border-radius:6px;background:#fff}
+  .tbl table{border-collapse:collapse;width:100%;font-size:15px;line-height:1.5}
+  .tbl caption{text-align:left;font-size:14px;color:var(--soft);padding:12px 14px 0}
+  .tbl th,.tbl td{text-align:left;vertical-align:top;padding:11px 14px;border-bottom:1px solid var(--rule)}
+  .tbl thead th{background:var(--accent-tint);font-weight:600}
+  .tbl tr:last-child td{border-bottom:0}
+  /* guides */
+  .crumb{font-size:14px;color:var(--soft);padding-top:22px}
+  .crumb ol{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px}
+  .crumb li+li::before{content:"\203A";margin:0 6px;color:var(--soft)}
+  .crumb a{color:var(--soft)}
+  .hero.article{padding:40px 0 28px}
+  .hero.article h1{font-size:clamp(29px,4.2vw,44px);line-height:1.13}
+  .meta{font-size:14px;color:var(--soft);margin:0}
+  .answer{background:var(--accent-tint);border:2px solid var(--accent);border-radius:6px;padding:20px 24px;max-width:760px;margin:0 0 8px}
+  .answer p{margin:0}
+  .toc{max-width:740px;font-size:15px;margin:22px 0 0}
+  .toc strong{display:block;margin-bottom:4px}
+  .toc ol{margin:0;padding-left:20px}
+  .prose{max-width:740px;padding-bottom:24px;min-width:0}
+  .prose h2{font-family:var(--serif);font-weight:var(--brandw);font-size:clamp(24px,3.2vw,30px);line-height:1.2;margin:44px 0 12px;padding-top:28px;border-top:1px solid var(--rule)}
+  .prose h3{font-family:var(--serif);font-weight:var(--brandw);font-size:21px;line-height:1.3;margin:28px 0 8px}
+  .prose p,.prose ul,.prose ol{margin:0 0 16px}
+  .prose ul,.prose ol:not(.steps){padding-left:22px}
+  .prose li{margin-bottom:6px}
+  .prose code,.side code,.card code,.fine code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.88em;background:#fff;border:1px solid var(--rule);border-radius:3px;padding:1px 5px;overflow-wrap:anywhere}
+  .prose pre{background:var(--code-bg);color:#E8EDF3;border-radius:6px;padding:16px 18px;overflow-x:auto;font-size:14px;line-height:1.55;margin:0 0 18px;max-width:100%}
+  .prose pre code{background:none;border:0;padding:0;color:inherit;font-size:inherit;overflow-wrap:normal}
+  ul.check{list-style:none;padding-left:0}
+  .prose ul.check{padding-left:0}
+  ul.check li{position:relative;padding-left:30px}
+  ul.check li::before{content:"";position:absolute;left:2px;top:.32em;width:16px;height:16px;border:2px solid var(--accent);border-radius:3px;background:#fff}
+  .cta{background:#fff;border:1px solid var(--rule);border-left:5px solid var(--accent);border-radius:0 6px 6px 0;padding:22px 26px;margin:32px 0 8px}
+  .cta p{margin:0 0 14px}
+  .note{background:var(--warn-tint);border-left:5px solid var(--warn);padding:14px 18px;border-radius:0 6px 6px 0;font-size:15px}
+  .sources ol{padding-left:22px;font-size:15px}
+  .sources li{overflow-wrap:anywhere}
+  .related{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin:0 0 16px}
+  .related a{display:block;background:#fff;border:1px solid var(--rule);border-radius:6px;padding:16px 18px;text-decoration:none}
+  .related a strong{display:block;font-family:var(--serif);font-size:19px;line-height:1.25;margin-bottom:4px}
+  .related a span{color:var(--soft);font-size:15px}
+  .guides{display:grid;gap:20px;max-width:800px;margin-bottom:48px}
+  .guides .card h2{font-family:var(--serif);font-size:24px;line-height:1.25;margin:0 0 8px}
+  .guides .card h2 a{text-decoration:none}
+  .tag{display:inline-block;font-size:13px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+  @media (max-width:860px){
+    .split,.three,.offers,.offers.two,.related,.contact-grid{grid-template-columns:1fr}
+    .q{grid-template-columns:1fr}
+    .hero{padding:44px 0 36px}
+    .checks{columns:1}
+  }
+  @media (max-width:560px){
+    body{font-size:16.5px}
+    .wrap{padding:0 16px}
+    header .wrap{padding:20px 16px}
+    .brand small{display:block;margin:2px 0 0}
+    h2.s{font-size:26px}
+    .quiz{padding:4px 16px 16px}
+    .card,.offer,form,.side,.answer,.cta,.guarantee{padding:18px}
+    .seg button{padding:7px 10px}
+    .tbl{overflow-x:visible}
+    .tbl thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+    .tbl tr{display:block;border-bottom:1px solid var(--rule);padding:6px 0}
+    .tbl tbody tr:last-child{border-bottom:0}
+    .tbl td{display:block;border:0;padding:4px 14px}
+    .tbl td::before{content:attr(data-label);display:block;font-size:12px;font-weight:600;color:var(--soft);text-transform:uppercase;letter-spacing:.04em}
+    .tbl td:first-child{font-weight:600}
+  }
+</style>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "@id": "https://kubeprune.com/#org", "name": "KubePrune", "url": "https://kubeprune.com/", "logo": "https://kubeprune.com/favicon.svg", "address": {"@type": "PostalAddress", "addressCountry": "FR"}, "founder": {"@type": "Person", "name": "Amine", "jobTitle": "Freelance DevOps engineer", "knowsAbout": ["AWS", "Google Cloud", "Microsoft Azure", "Kubernetes", "Terraform"]}, "description": "Fixed-price AWS cost audits and Amazon EKS version upgrades for startups and scale-ups.", "areaServed": [{"@type": "Country", "name": "United States"}, {"@type": "Country", "name": "United Kingdom"}, {"@type": "Country", "name": "Australia"}, {"@type": "Country", "name": "Sweden"}, {"@type": "Country", "name": "Norway"}, {"@type": "Country", "name": "Denmark"}, {"@type": "Country", "name": "Finland"}]}, {"@type": "WebPage", "@id": "https://kubeprune.com/eks-upgrade/", "url": "https://kubeprune.com/eks-upgrade/", "name": "Fixed-price EKS upgrade off extended support | KubePrune", "description": "EKS extended support costs $0.60 per cluster-hour vs $0.10 standard. Free readiness check, then a $3,900 fixed-price upgrade per cluster with a tested rollback.", "inLanguage": "en-US", "isPartOf": {"@type": "WebSite", "@id": "https://kubeprune.com/#site", "url": "https://kubeprune.com/", "name": "KubePrune", "inLanguage": "en-US", "publisher": {"@id": "https://kubeprune.com/#org"}}, "about": {"@id": "https://kubeprune.com/eks-upgrade/#service"}}, {"@type": "Service", "@id": "https://kubeprune.com/eks-upgrade/#service", "name": "Fixed-price Amazon EKS version upgrade", "serviceType": "Kubernetes cluster upgrade", "provider": {"@id": "https://kubeprune.com/#org"}, "areaServed": [{"@type": "Country", "name": "United States"}, {"@type": "Country", "name": "United Kingdom"}, {"@type": "Country", "name": "Australia"}, {"@type": "Country", "name": "Sweden"}, {"@type": "Country", "name": "Norway"}, {"@type": "Country", "name": "Denmark"}, {"@type": "Country", "name": "Finland"}], "url": "https://kubeprune.com/eks-upgrade/", "offers": [{"@type": "Offer", "name": "EKS upgrade readiness check", "priceCurrency": "USD", "url": "https://kubeprune.com/eks-upgrade/#contact", "description": "Free written check of versions, deprecated APIs, add-ons and node groups for one cluster.", "price": "0", "priceSpecification": {"@type": "UnitPriceSpecification", "price": "0", "priceCurrency": "USD", "valueAddedTaxIncluded": false}}, {"@type": "Offer", "name": "Fixed-price EKS upgrade", "priceCurrency": "USD", "url": "https://kubeprune.com/eks-upgrade/#contact", "description": "Per cluster: deprecated API scan, add-on and node group upgrades, tested rollback plan.", "price": "3900", "priceSpecification": {"@type": "UnitPriceSpecification", "price": "3900", "priceCurrency": "USD", "valueAddedTaxIncluded": false}}]}, {"@type": "FAQPage", "@id": "https://kubeprune.com/eks-upgrade/#faq", "mainEntity": [{"@type": "Question", "name": "How much does EKS extended support cost?", "acceptedAnswer": {"@type": "Answer", "text": "$0.60 per cluster per hour instead of $0.10 in standard support, according to the Amazon EKS pricing page. Over 730 hours that is about $438 a month instead of $73, or about $4,380 a year more per cluster. Worker nodes are billed separately and don't change."}}, {"@type": "Question", "name": "When does EKS upgrade a cluster automatically?", "acceptedAnswer": {"@type": "Answer", "text": "At the end of extended support, AWS upgrades the control plane to the oldest supported version, gradually and without advance notice. Only the control plane moves; managed node groups, self-managed nodes and add-ons stay behind until you update them. For Kubernetes 1.31, extended support ends on November 26, 2026."}}, {"@type": "Question", "name": "Can you roll back an EKS upgrade?", "acceptedAnswer": {"@type": "Answer", "text": "Since July 2026, yes, within 7 days of an in-place upgrade and by one minor version only. Add-ons and managed node groups have to be rolled back separately, Fargate nodes can't be, and clusters that AWS upgraded automatically at the end of extended support can't be rolled back at all."}}, {"@type": "Question", "name": "Can we just turn off extended support?", "acceptedAnswer": {"@type": "Answer", "text": "Only while the cluster is still in standard support, by setting its upgrade policy to STANDARD. The cluster is then upgraded automatically when standard support ends, on a date you don't choose. Once a cluster is in extended support, the only way out is to upgrade it."}}, {"@type": "Question", "name": "What does the $3,900 cover?", "acceptedAnswer": {"@type": "Answer", "text": "One cluster, from its current version to a version in standard support, one minor version at a time: deprecated API scan, rehearsal, add-on upgrades, node group upgrades (including Amazon Linux 2 to Amazon Linux 2023 where needed), a tested rollback plan and a written report."}}, {"@type": "Question", "name": "Which clusters are paying extended support right now?", "acceptedAnswer": {"@type": "Answer", "text": "As of November 3, 2026, clusters on Kubernetes 1.31, 1.32 and 1.33 are in extended support, unless their upgrade policy was changed. Version 1.34 leaves standard support on December 2, 2026."}}]}]}</script>
+<style>
+  .sim{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:28px;align-items:start}
+  .panel{background:#fff;border:1px solid var(--rule);border-radius:6px;padding:24px}
+  .verdict{border-radius:6px;padding:24px;border:1px solid var(--rule);background:#fff;min-width:0}
+  .verdict.bad{background:var(--bad-tint);border-color:var(--bad)}
+  .verdict.soon{background:var(--warn-tint);border-color:var(--warn)}
+  .verdict.ok{background:var(--ok-tint);border-color:var(--ok)}
+  .verdict h3{font-family:var(--serif);font-size:24px;margin:0 0 10px;line-height:1.2}
+  .verdict .big{font-size:38px;font-weight:600;font-variant-numeric:tabular-nums;margin:6px 0;letter-spacing:-.01em;line-height:1.15}
+  .verdict .big span{font-size:16px;font-weight:400;color:var(--soft);display:block}
+  .verdict p{margin:8px 0}
+  .timeline{list-style:none;padding:0;margin:14px 0 0;font-size:15px;font-variant-numeric:tabular-nums}
+  .timeline li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 14px;padding:6px 0;border-bottom:1px dashed var(--rule)}
+  .timeline li:last-child{border:0}
+  @media (max-width:860px){.sim{grid-template-columns:1fr}}
+  @media (max-width:560px){.panel,.verdict{padding:18px}.verdict .big{font-size:32px}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="brand" href="/">KubePrune<small>AWS and EKS, trimmed</small></a>
+  <nav class="mainnav" aria-label="Main"><a href="/">Cost audit</a><a href="/eks-upgrade/" aria-current="page">EKS upgrade</a><a href="/blog/">Guides</a><a href="#contact">Contact</a></nav>
+</div></header>
+<main class="wrap">
+  <div class="hero">
+    <h1>An EKS cluster left on an old version pays six times more for its control plane. Every hour.</h1>
+    <p class="lede">Fourteen months after a Kubernetes version is released on EKS, standard support ends and the cluster moves to extended support: $0.60 per cluster-hour instead of $0.10, about $438 a month instead of $73. Twelve months later, AWS upgrades the control plane for you, on its schedule. We upgrade your clusters on yours, at a fixed price.</p>
+    <div class="ctas"><a class="btn" href="#check">Check my clusters in 20 seconds</a><a class="btn ghost" href="#contact" data-booking>Book a 30-min call</a></div>
+  </div>
+
+  <section id="check">
+    <h2 class="s">Is your cluster already paying for extended support?</h2>
+    <p class="sub">Free, nothing is sent. Dates from the Amazon EKS release calendar and prices from the EKS pricing page, checked on November 3, 2026.</p>
+    <div class="sim">
+      <div class="panel">
+        <label for="ver">Kubernetes version of the cluster</label>
+        <select id="ver"></select>
+        <label for="n">Number of clusters on this version</label>
+        <input id="n" type="number" min="1" max="500" value="1" inputmode="numeric">
+        <p class="fine">To find the version: <code>aws eks describe-cluster --name my-cluster --query cluster.version</code>, or the EKS console. List prices, before discounts and taxes.</p>
+      </div>
+      <div class="verdict" id="out" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="s">What AWS does if you wait</h2>
+    <p class="sub">From the EKS documentation on Kubernetes versions and on rollback.</p>
+    <div class="three">
+      <div class="card"><p class="date">End of standard support</p><h3>The bill goes up</h3><p>Extended support is on by default for new and existing clusters. Billing at $0.60 per hour starts without anyone opting in.</p></div>
+      <div class="card"><p class="date">End of extended support</p><h3>The control plane moves alone</h3><p>AWS upgrades the control plane to the oldest supported version, gradually, with no advance notice. Node groups and add-ons stay behind until you update them.</p></div>
+      <div class="card"><p class="date">After a forced upgrade</p><h3>No way back</h3><p>EKS rollback works within 7 days of an in-place upgrade. It does not apply to clusters AWS upgraded at the end of extended support.</p></div>
+    </div>
+  </section>
+
+  <section id="offer">
+    <h2 class="s">The upgrade, at a fixed price per cluster</h2>
+    <p class="sub">A known price before we start, an agreed maintenance window, and a rollback plan tested before production is touched. Prices in USD, excluding taxes.</p>
+    <div class="offers two">
+      <div class="offer">
+        <h3>Upgrade readiness check</h3>
+        <p class="price">Free <span>one cluster</span></p>
+        <ul>
+          <li>Current version, target version and the hops in between</li>
+          <li>Deprecated APIs and EKS upgrade insights reviewed</li>
+          <li>Add-ons, Helm controllers and node groups that block the upgrade</li>
+          <li>Written result, whether or not you hire us</li>
+        </ul>
+        <a class="btn ghost" href="#contact">Ask for the readiness check</a>
+      </div>
+      <div class="offer main">
+        <h3>Fixed-price upgrade</h3>
+        <p class="price">$3,900 <span>per cluster</span></p>
+        <ul>
+          <li>Deprecated API scan (pluto, kubent, EKS upgrade insights) and fixes as pull requests</li>
+          <li>Add-on upgrades: VPC CNI, CoreDNS, kube-proxy, EBS CSI driver, plus Helm-installed controllers</li>
+          <li>Node group upgrades: managed node groups, Karpenter, Amazon Linux 2 to AL2023 when needed</li>
+          <li>Tested rollback plan, rehearsed on staging before production</li>
+          <li>Every minor-version hop up to a version in standard support</li>
+          <li>Written report and the next upgrade date in your calendar</li>
+        </ul>
+        <a class="btn" href="#contact">Book the upgrade</a>
+      </div>
+    </div>
+    <p class="fine" style="margin-top:14px">For reference: at list price, extended support adds about $4,380 per cluster per year, so the fixed price is less than one year of the surcharge on a single cluster.</p>
+    <div class="ctas after-offers"><a class="btn" href="#contact">Get the free readiness check</a><a class="btn ghost" href="#contact" data-booking>Book a 30-min call</a></div>
+  </section>
+
+  <section>
+    <h2 class="s">How the upgrade runs</h2>
+    <ol class="steps">
+      <li><strong>Day 1: inventory.</strong> Read-only access. Versions, add-ons, deprecated APIs, Helm charts, operators, PodDisruptionBudgets. Everything that will break is listed before anything changes.</li>
+      <li><strong>Days 2 to 4: rehearsal.</strong> The full upgrade runs on staging, or on a short-lived copy built from the same Terraform. Each fix goes to your repository as a pull request.</li>
+      <li><strong>Day 5: production.</strong> In the agreed window. The rollback plan, EKS rollback within 7 days or a blue/green cluster, is written and tested before the first node moves.</li>
+      <li><strong>Day 6: report.</strong> What was done, what was fixed, your next support deadline, and a checklist to run the next upgrade yourself.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2 class="s">About rollback, honestly</h2>
+    <div class="guarantee">
+      <p>Since July 1, 2026, EKS can roll a cluster back to the previous minor version within 7 days of an in-place upgrade. It is a real safety net, with limits: one minor version only, add-ons and managed node groups rolled back separately, no Fargate rollback, and no rollback after an automatic upgrade at the end of extended support. That is why the plan is rehearsed on staging, and why a blue/green cluster stays the fallback for multi-hop upgrades on critical clusters.</p>
+    </div>
+  </section>
+
+  <section class="faq-wrap" id="faq">
+    <h2 class="s">Frequently asked questions</h2>
+    <div class="faq">
+      <details><summary>How much does EKS extended support cost?</summary><p>$0.60 per cluster per hour instead of $0.10 in standard support, according to the Amazon EKS pricing page. Over 730 hours that is about $438 a month instead of $73, or about $4,380 a year more per cluster. Worker nodes are billed separately and don't change.</p></details>
+      <details><summary>When does EKS upgrade a cluster automatically?</summary><p>At the end of extended support, AWS upgrades the control plane to the oldest supported version, gradually and without advance notice. Only the control plane moves; managed node groups, self-managed nodes and add-ons stay behind until you update them. For Kubernetes 1.31, extended support ends on November 26, 2026.</p></details>
+      <details><summary>Can you roll back an EKS upgrade?</summary><p>Since July 2026, yes, within 7 days of an in-place upgrade and by one minor version only. Add-ons and managed node groups have to be rolled back separately, Fargate nodes can't be, and clusters that AWS upgraded automatically at the end of extended support can't be rolled back at all.</p></details>
+      <details><summary>Can we just turn off extended support?</summary><p>Only while the cluster is still in standard support, by setting its upgrade policy to STANDARD. The cluster is then upgraded automatically when standard support ends, on a date you don't choose. Once a cluster is in extended support, the only way out is to upgrade it.</p></details>
+      <details><summary>What does the $3,900 cover?</summary><p>One cluster, from its current version to a version in standard support, one minor version at a time: deprecated API scan, rehearsal, add-on upgrades, node group upgrades (including Amazon Linux 2 to Amazon Linux 2023 where needed), a tested rollback plan and a written report.</p></details>
+      <details><summary>Which clusters are paying extended support right now?</summary><p>As of November 3, 2026, clusters on Kubernetes 1.31, 1.32 and 1.33 are in extended support, unless their upgrade policy was changed. Version 1.34 leaves standard support on December 2, 2026.</p></details>
+    </div>
+  </section>
+
+  <section id="contact">
+    <h2 class="s">Ask for the readiness check</h2>
+    <p class="sub">Written reply within one business day, with a fixed price. No sales sequence.</p>
+    <div class="contact-grid">
+    <div>
+    <form id="f" method="POST" action="https://formspree.io/f/mzeejnkr">
+      <label for="email">Work email</label>
+      <input id="email" name="email" type="email" required autocomplete="email">
+      <label for="company">Company</label>
+      <input id="company" name="company" type="text" required autocomplete="organization">
+      <label for="clusters">Clusters and current versions</label>
+      <input id="clusters" name="clusters" type="text" placeholder="e.g. 2 clusters on 1.31, 1 on 1.33">
+      <label for="nodes">Nodes</label>
+      <select id="nodes" name="nodes"><option>Managed node groups</option><option>Karpenter</option><option>Self-managed nodes</option><option>EKS Auto Mode</option><option>Fargate</option><option>A mix</option></select>
+      <label for="msg">What worries you (optional)</label>
+      <textarea id="msg" name="message" rows="3"></textarea>
+      <input type="hidden" name="simulator" id="simField" value="">
+      <input type="hidden" name="source" value="kubeprune.com (EKS upgrade)">
+      <input type="hidden" name="_subject" value="kubeprune.com: EKS upgrade request">
+      <button class="btn" type="submit">Send</button>
+      <p class="fine">Used only to answer this request.</p>
+    </form>
+    <div class="thanks" id="t"><p><strong>Sent.</strong> You will get a written reply with a fixed price within one business day.</p></div>
+    </div>
+    <aside class="side">
+      <h3>Deadline close?</h3>
+      <p>If a cluster is on 1.31, extended support ends on November 26, 2026. Thirty minutes is enough to plan the hops.</p>
+      <a class="btn ghost" href="#contact" data-booking>Book a 30-min call</a>
+    </aside>
+    </div>
+  </section>
+</main>
+<footer><div class="wrap">
+  <p>KubePrune: <a href="/">fixed-price AWS cost audits</a> and <a href="/eks-upgrade/">fixed-price EKS upgrades</a> for startups and scale-ups in the US, the UK, Australia and the Nordics. Run by Amine, a freelance DevOps engineer based in France (EU), working with AWS, Google Cloud, Azure, Kubernetes and Terraform. Prices in USD, excluding taxes.</p>
+  <p>AWS prices quoted on this site are public list prices checked on November 3, 2026, before discounts and taxes. KubePrune is independent and not affiliated with Amazon Web Services.</p>
+  <p><a href="/blog/"><strong>Guides</strong></a>: <a href="/blog/eks-extended-support-cost/">The real cost of EKS extended support</a> · <a href="/blog/eks-upgrade-checklist/">EKS upgrade checklist</a> · <a href="/blog/aws-cost-cuts-without-rearchitecture/">12 AWS cost cuts that don't need a re-architecture</a></p>
+</div></footer>
+<script>
+(function(){
+  // Amazon EKS release calendar (UTC): [end of standard support, end of extended support]. Standard $0.10/h, extended $0.60/h.
+  var V={"1.31": ["2025-11-26", "2026-11-26"], "1.32": ["2026-03-23", "2027-03-23"], "1.33": ["2026-07-29", "2027-07-29"], "1.34": ["2026-12-02", "2027-12-02"], "1.35": ["2027-03-27", "2028-03-27"], "1.36": ["2027-08-02", "2028-08-02"], "1.37": ["2027-12-01", "2028-12-01"]}, STD=0.10, EXT=0.60, HOURS=730, PRICE=3900;
+  var ver=document.getElementById('ver'),n=document.getElementById('n'),out=document.getElementById('out'),sf=document.getElementById('simField');
+  ver.innerHTML=Object.keys(V).map(function(k){return '<option value="'+k+'">'+k+'</option>';}).join('');
+  ver.value='1.31';
+  function fmtDate(iso){return new Date(iso+'T00:00:00Z').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric',timeZone:'UTC'});}
+  function usd(x){return '$'+Math.round(x).toLocaleString('en-US');}
+  function days(iso){var d=new Date(iso+'T00:00:00Z'),t=new Date();t=Date.UTC(t.getFullYear(),t.getMonth(),t.getDate());return Math.round((d-t)/86400000);}
+  function pl(c){return c+' cluster'+(c>1?'s':'');}
+  function render(){
+    var k=ver.value,d=V[k],c=Math.max(1,Math.min(500,parseInt(n.value,10)||1));
+    var dStd=days(d[0]),dExt=days(d[1]),extra=(EXT-STD)*HOURS*c,total=EXT*HOURS*c,html,cls;
+    if(dExt<=0){
+      cls='bad';
+      html='<h3>EKS '+k+': past the end of extended support</h3><p>Extended support for this version ended on '+fmtDate(d[1])+'. AWS upgrades the control plane to the oldest supported version, gradually and without notice. Node groups and add-ons stay behind, and an automatic upgrade at this stage can\'t be rolled back.</p>';
+    } else if(dStd<=0){
+      cls='bad';
+      html='<h3>EKS '+k+': you are paying for extended support</h3><div class="big">'+usd(extra)+'<span>extra per month for '+pl(c)+'</span></div>'
+        +'<p>Standard support ended on '+fmtDate(d[0])+'. Each cluster is billed $0.60 an hour instead of $0.10: '+usd(total)+' a month in total. Over a year, the extra cost is <b>'+usd(extra*12)+'</b>.</p>'
+        +'<ul class="timeline"><li><span>End of extended support, then automatic upgrade</span><b>'+fmtDate(d[1])+' ('+dExt+' days)</b></li></ul>'
+        +'<p>At list price, the $3,900 fixed-price upgrade equals about '+(PRICE/(extra/c)).toFixed(1)+' months of the surcharge on one cluster.</p>';
+    } else if(dStd<=90){
+      cls='soon';
+      html='<h3>EKS '+k+': '+dStd+' days until extended support billing</h3><p>Standard support ends on <b>'+fmtDate(d[0])+'</b>. After that, each cluster costs '+usd(EXT*HOURS)+' a month instead of '+usd(STD*HOURS)+', so <b>'+usd(extra)+' extra per month</b> for '+pl(c)+'.</p>'
+        +'<ul class="timeline"><li><span>Extended support starts</span><b>'+fmtDate(d[0])+'</b></li><li><span>End of extended support, then automatic upgrade</span><b>'+fmtDate(d[1])+'</b></li></ul>'
+        +'<p>This is the right window: you still pick the date, and you can switch the cluster to the STANDARD upgrade policy as a budget guardrail while the upgrade is planned.</p>';
+    } else {
+      cls='ok';
+      html='<h3>EKS '+k+': in standard support</h3><p>'+dStd+' days of standard support left, until <b>'+fmtDate(d[0])+'</b>. No surcharge today.</p>'
+        +'<ul class="timeline"><li><span>Extended support starts ('+usd(extra)+' extra per month)</span><b>'+fmtDate(d[0])+'</b></li><li><span>End of extended support</span><b>'+fmtDate(d[1])+'</b></li></ul>'
+        +'<p>Put a reminder 90 days before that date.</p>';
+    }
+    html+='<p class="fine">List prices per cluster-hour, 730 hours a month, before discounts and taxes. Worker nodes are billed separately and are not included.</p>';
+    out.className='verdict '+cls;out.innerHTML=html;
+    if(sf)sf.value='EKS '+k+' x'+c+(dStd<=0&&dExt>0?' (extended support)':'');
+  }
+  ver.addEventListener('change',render);n.addEventListener('input',render);render();
+
+  var f=document.getElementById('f'),t=document.getElementById('t');
+  if(f){f.addEventListener('submit',function(e){e.preventDefault();
+    var b=f.querySelector('button[type=submit]');b.disabled=true;
+    fetch(f.action,{method:'POST',body:new FormData(f),headers:{Accept:'application/json'}})
+    .then(function(r){if(r.ok){f.style.display='none';t.style.display='block';}else{b.disabled=false;alert("Your message did not go through. Please try again in a minute.");}})
+    .catch(function(){b.disabled=false;alert("Your message did not go through. Check your connection and try again.");});
+  });}
+})();
+</script>
+</body>
+</html>

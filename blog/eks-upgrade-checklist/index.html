@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EKS upgrade checklist: from 1.31 to 1.35 without breakage</title>
+<meta name="description" content="Step-by-step Amazon EKS upgrade checklist: deprecated APIs, upgrade insights, add-ons, nodes and Karpenter, PDBs, one version at a time, and the 7-day rollback.">
+<link rel="canonical" href="https://kubeprune.com/blog/eks-upgrade-checklist/">
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+<meta property="og:type" content="article">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="KubePrune">
+<meta property="og:title" content="EKS upgrade checklist: from 1.31 to 1.35 without breakage">
+<meta property="og:description" content="Step-by-step Amazon EKS upgrade checklist: deprecated APIs, upgrade insights, add-ons, nodes and Karpenter, PDBs, one version at a time, and the 7-day rollback.">
+<meta property="og:url" content="https://kubeprune.com/blog/eks-upgrade-checklist/">
+<meta property="article:published_time" content="2026-11-03">
+<meta property="article:modified_time" content="2026-11-03">
+<meta name="author" content="Amine">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#F6F7F2;--ink:#1E2A1F;--soft:#56634F;--rule:#D3D8CB;--field:#B9C2AF;--accent:#3F6B3A;--accent-dark:#335A2F;--accent-tint:#E3EBDC;--ok:#3F6B3A;--ok-tint:#E3EBDC;--warn:#8A6414;--warn-tint:#F5ECD3;--bad:#A4462B;--bad-tint:#F6E4DD;--focus:#2C5FD9;--code-bg:#1E2A1F;--brandw:650;--serif:"Fraunces",Georgia,serif;--sans:"Public Sans",system-ui,sans-serif}
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;overflow-wrap:break-word}
+  :focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+  a{color:var(--ink)}
+  img,svg{max-width:100%}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 20px}
+  header .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:10px 16px;padding:24px 20px;border-bottom:1px solid var(--rule)}
+  .brand{font-family:var(--serif);font-weight:var(--brandw);font-size:26px;text-decoration:none;letter-spacing:-.01em}
+  .brand small{font-family:var(--sans);font-weight:400;font-size:14px;color:var(--soft);margin-left:10px;letter-spacing:0}
+  header nav.mainnav{display:flex;flex-wrap:wrap;gap:6px 20px;align-items:baseline}
+  header nav.mainnav a{margin:0;font-weight:500;text-decoration:none;border-bottom:2px solid transparent;padding-bottom:1px}
+  header nav.mainnav a:hover{border-bottom-color:var(--rule)}
+  header nav.mainnav a[aria-current="page"]{border-bottom-color:currentColor}
+  .hero{padding:64px 0 48px;max-width:820px}
+  h1{font-family:var(--serif);font-weight:var(--brandw);font-size:clamp(31px,4.8vw,50px);line-height:1.1;letter-spacing:-.015em;margin:0 0 20px}
+  .lede{font-size:19px;color:var(--soft);margin:0 0 28px;max-width:62ch}
+  .ctas{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;padding:14px 22px;border-radius:4px;border:2px solid var(--accent);font:inherit;font-weight:600;line-height:1.3;cursor:pointer;text-align:center}
+  .btn:hover{background:var(--accent-dark);border-color:var(--accent-dark)}
+  .btn.ghost{background:transparent;color:var(--ink);border-color:var(--ink)}
+  .btn.ghost:hover{background:var(--accent-tint)}
+  section{padding:56px 0;border-top:1px solid var(--rule)}
+  h2.s{font-family:var(--serif);font-weight:var(--brandw);font-size:30px;line-height:1.2;margin:0 0 10px}
+  .sub{color:var(--soft);max-width:64ch;margin:0 0 28px}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+  .card{background:#fff;border:1px solid var(--rule);border-radius:6px;padding:24px;min-width:0}
+  .card h3{font-family:var(--serif);font-size:21px;margin:0 0 10px;line-height:1.25}
+  .card p{margin:0 0 10px}.card p:last-child{margin-bottom:0}
+  .card ul{padding-left:18px;margin:0}.card li{margin-bottom:7px}
+  .card.paper{background:#fbfbfb}
+  .card.real{border:2px solid var(--accent);background:var(--accent-tint)}
+  .date{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);margin:0 0 6px}
+  .quiz{background:#fff;border:1px solid var(--rule);border-radius:6px;padding:8px 24px 20px}
+  .q{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--rule)}
+  .q:last-of-type{border-bottom:0}
+  .q p{margin:0}.q small{display:block;color:var(--soft);font-size:13px;margin-top:2px}
+  .seg{display:inline-flex;border:1px solid var(--rule);border-radius:4px;overflow:hidden}
+  .seg button{font:inherit;font-size:14px;border:0;background:#fff;padding:7px 12px;cursor:pointer;color:var(--ink);border-left:1px solid var(--rule)}
+  .seg button:first-child{border-left:0}
+  .seg button[aria-pressed="true"].y{background:var(--ok);color:#fff}
+  .seg button[aria-pressed="true"].p{background:var(--warn);color:#fff}
+  .seg button[aria-pressed="true"].n{background:var(--bad);color:#fff}
+  .result{margin-top:22px;border-radius:6px;padding:22px 24px;border:1px solid var(--rule);background:#fff}
+  .result.bad{background:var(--bad-tint);border-color:var(--bad)}
+  .result.mid{background:var(--warn-tint);border-color:var(--warn)}
+  .result.good{background:var(--ok-tint);border-color:var(--ok)}
+  .result h3{font-family:var(--serif);font-size:24px;margin:0 0 8px;line-height:1.2}
+  .result .score{font-size:40px;font-weight:600;font-variant-numeric:tabular-nums}
+  .result ul{margin:10px 0 0;padding-left:18px}
+  .offers{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+  .offers.two{grid-template-columns:1fr 1fr;max-width:820px}
+  .offer{background:#fff;border:1px solid var(--rule);border-radius:6px;padding:24px;min-width:0;display:flex;flex-direction:column}
+  .offer.main{border:2px solid var(--accent);background:var(--accent-tint)}
+  .offer h3{font-family:var(--serif);font-size:22px;margin:0 0 4px;line-height:1.25}
+  .offer .price{font-size:26px;font-weight:600;margin:6px 0 12px;font-variant-numeric:tabular-nums}
+  .offer .price span{font-size:15px;font-weight:400;color:var(--soft)}
+  .offer ul{padding-left:18px;margin:0 0 16px}.offer li{margin-bottom:6px}
+  .offer .btn{margin-top:auto;align-self:flex-start}
+  .after-offers{margin-top:24px}
+  ol.steps{counter-reset:s;list-style:none;padding:0;margin:0;max-width:720px}
+  ol.steps li{counter-increment:s;position:relative;padding:0 0 22px 52px}
+  ol.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:34px;height:34px;border-radius:50%;border:2px solid var(--accent);display:grid;place-items:center;font-weight:600;color:var(--accent)}
+  ol.steps strong{display:block}
+  .guarantee{background:#fff;border-left:5px solid var(--accent);padding:22px 26px;max-width:760px;border-radius:0 6px 6px 0}
+  .guarantee p{margin:0 0 10px}.guarantee p:last-child{margin:0}
+  .checks{columns:2;column-gap:40px;padding-left:18px;max-width:820px;margin:0}
+  .checks li{break-inside:avoid;margin-bottom:8px}
+  form{background:#fff;border:1px solid var(--rule);border-radius:6px;padding:26px;max-width:620px}
+  label{display:block;font-weight:500;margin-bottom:6px}
+  input,select,textarea{width:100%;max-width:100%;font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--field);border-radius:4px;background:#fff;color:var(--ink);margin-bottom:16px}
+  .fine{font-size:14px;color:var(--soft)}
+  .thanks{display:none;background:#fff;border:1px solid var(--rule);border-radius:6px;padding:26px;max-width:620px}
+  .contact-grid{display:grid;grid-template-columns:minmax(0,620px) minmax(0,1fr);gap:32px;align-items:start}
+  .side{background:#fff;border:1px solid var(--rule);border-radius:6px;padding:22px 24px}
+  .side h3{font-family:var(--serif);font-size:20px;margin:0 0 8px}
+  .side p{margin:0 0 14px}
+  footer{border-top:1px solid var(--rule);padding:30px 0 48px;color:var(--soft);font-size:14px}
+  footer p{margin:0 0 10px}
+  .faq{max-width:780px}
+  .faq details{border-bottom:1px solid var(--rule);padding:14px 0}
+  .faq summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:16px}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary::after{content:"+";font-weight:400;font-size:22px;line-height:1}
+  .faq details[open] summary::after{content:"\2212"}
+  .faq details p{margin:10px 0 0;color:var(--soft)}
+  .tbl{overflow-x:auto;margin:0 0 20px;border:1px solid var(--rule);border-radius:6px;background:#fff}
+  .tbl table{border-collapse:collapse;width:100%;font-size:15px;line-height:1.5}
+  .tbl caption{text-align:left;font-size:14px;color:var(--soft);padding:12px 14px 0}
+  .tbl th,.tbl td{text-align:left;vertical-align:top;padding:11px 14px;border-bottom:1px solid var(--rule)}
+  .tbl thead th{background:var(--accent-tint);font-weight:600}
+  .tbl tr:last-child td{border-bottom:0}
+  /* guides */
+  .crumb{font-size:14px;color:var(--soft);padding-top:22px}
+  .crumb ol{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px}
+  .crumb li+li::before{content:"\203A";margin:0 6px;color:var(--soft)}
+  .crumb a{color:var(--soft)}
+  .hero.article{padding:40px 0 28px}
+  .hero.article h1{font-size:clamp(29px,4.2vw,44px);line-height:1.13}
+  .meta{font-size:14px;color:var(--soft);margin:0}
+  .answer{background:var(--accent-tint);border:2px solid var(--accent);border-radius:6px;padding:20px 24px;max-width:760px;margin:0 0 8px}
+  .answer p{margin:0}
+  .toc{max-width:740px;font-size:15px;margin:22px 0 0}
+  .toc strong{display:block;margin-bottom:4px}
+  .toc ol{margin:0;padding-left:20px}
+  .prose{max-width:740px;padding-bottom:24px;min-width:0}
+  .prose h2{font-family:var(--serif);font-weight:var(--brandw);font-size:clamp(24px,3.2vw,30px);line-height:1.2;margin:44px 0 12px;padding-top:28px;border-top:1px solid var(--rule)}
+  .prose h3{font-family:var(--serif);font-weight:var(--brandw);font-size:21px;line-height:1.3;margin:28px 0 8px}
+  .prose p,.prose ul,.prose ol{margin:0 0 16px}
+  .prose ul,.prose ol:not(.steps){padding-left:22px}
+  .prose li{margin-bottom:6px}
+  .prose code,.side code,.card code,.fine code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.88em;background:#fff;border:1px solid var(--rule);border-radius:3px;padding:1px 5px;overflow-wrap:anywhere}
+  .prose pre{background:var(--code-bg);color:#E8EDF3;border-radius:6px;padding:16px 18px;overflow-x:auto;font-size:14px;line-height:1.55;margin:0 0 18px;max-width:100%}
+  .prose pre code{background:none;border:0;padding:0;color:inherit;font-size:inherit;overflow-wrap:normal}
+  ul.check{list-style:none;padding-left:0}
+  .prose ul.check{padding-left:0}
+  ul.check li{position:relative;padding-left:30px}
+  ul.check li::before{content:"";position:absolute;left:2px;top:.32em;width:16px;height:16px;border:2px solid var(--accent);border-radius:3px;background:#fff}
+  .cta{background:#fff;border:1px solid var(--rule);border-left:5px solid var(--accent);border-radius:0 6px 6px 0;padding:22px 26px;margin:32px 0 8px}
+  .cta p{margin:0 0 14px}
+  .note{background:var(--warn-tint);border-left:5px solid var(--warn);padding:14px 18px;border-radius:0 6px 6px 0;font-size:15px}
+  .sources ol{padding-left:22px;font-size:15px}
+  .sources li{overflow-wrap:anywhere}
+  .related{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin:0 0 16px}
+  .related a{display:block;background:#fff;border:1px solid var(--rule);border-radius:6px;padding:16px 18px;text-decoration:none}
+  .related a strong{display:block;font-family:var(--serif);font-size:19px;line-height:1.25;margin-bottom:4px}
+  .related a span{color:var(--soft);font-size:15px}
+  .guides{display:grid;gap:20px;max-width:800px;margin-bottom:48px}
+  .guides .card h2{font-family:var(--serif);font-size:24px;line-height:1.25;margin:0 0 8px}
+  .guides .card h2 a{text-decoration:none}
+  .tag{display:inline-block;font-size:13px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+  @media (max-width:860px){
+    .split,.three,.offers,.offers.two,.related,.contact-grid{grid-template-columns:1fr}
+    .q{grid-template-columns:1fr}
+    .hero{padding:44px 0 36px}
+    .checks{columns:1}
+  }
+  @media (max-width:560px){
+    body{font-size:16.5px}
+    .wrap{padding:0 16px}
+    header .wrap{padding:20px 16px}
+    .brand small{display:block;margin:2px 0 0}
+    h2.s{font-size:26px}
+    .quiz{padding:4px 16px 16px}
+    .card,.offer,form,.side,.answer,.cta,.guarantee{padding:18px}
+    .seg button{padding:7px 10px}
+    .tbl{overflow-x:visible}
+    .tbl thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+    .tbl tr{display:block;border-bottom:1px solid var(--rule);padding:6px 0}
+    .tbl tbody tr:last-child{border-bottom:0}
+    .tbl td{display:block;border:0;padding:4px 14px}
+    .tbl td::before{content:attr(data-label);display:block;font-size:12px;font-weight:600;color:var(--soft);text-transform:uppercase;letter-spacing:.04em}
+    .tbl td:first-child{font-weight:600}
+  }
+</style>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "@id": "https://kubeprune.com/#org", "name": "KubePrune", "url": "https://kubeprune.com/", "logo": "https://kubeprune.com/favicon.svg", "address": {"@type": "PostalAddress", "addressCountry": "FR"}, "founder": {"@type": "Person", "name": "Amine", "jobTitle": "Freelance DevOps engineer", "knowsAbout": ["AWS", "Google Cloud", "Microsoft Azure", "Kubernetes", "Terraform"]}, "description": "Fixed-price AWS cost audits and Amazon EKS version upgrades for startups and scale-ups.", "areaServed": [{"@type": "Country", "name": "United States"}, {"@type": "Country", "name": "United Kingdom"}, {"@type": "Country", "name": "Australia"}, {"@type": "Country", "name": "Sweden"}, {"@type": "Country", "name": "Norway"}, {"@type": "Country", "name": "Denmark"}, {"@type": "Country", "name": "Finland"}]}, {"@type": "WebPage", "@id": "https://kubeprune.com/blog/eks-upgrade-checklist/", "url": "https://kubeprune.com/blog/eks-upgrade-checklist/", "name": "EKS upgrade checklist: from 1.31 to 1.35 without breakage", "description": "Step-by-step Amazon EKS upgrade checklist: deprecated APIs, upgrade insights, add-ons, nodes and Karpenter, PDBs, one version at a time, and the 7-day rollback.", "inLanguage": "en-US", "isPartOf": {"@type": "WebSite", "@id": "https://kubeprune.com/#site", "url": "https://kubeprune.com/", "name": "KubePrune", "inLanguage": "en-US", "publisher": {"@id": "https://kubeprune.com/#org"}}}, {"@type": "Article", "@id": "https://kubeprune.com/blog/eks-upgrade-checklist/#article", "headline": "EKS upgrade checklist: from 1.31 to 1.35 without breakage", "description": "Step-by-step Amazon EKS upgrade checklist: deprecated APIs, upgrade insights, add-ons, nodes and Karpenter, PDBs, one version at a time, and the 7-day rollback.", "inLanguage": "en-US", "datePublished": "2026-11-03", "dateModified": "2026-11-03", "author": {"@type": "Person", "name": "Amine", "jobTitle": "Freelance DevOps engineer"}, "publisher": {"@id": "https://kubeprune.com/#org"}, "mainEntityOfPage": {"@id": "https://kubeprune.com/blog/eks-upgrade-checklist/"}, "url": "https://kubeprune.com/blog/eks-upgrade-checklist/"}, {"@type": "Service", "@id": "https://kubeprune.com/eks-upgrade/#service", "name": "Fixed-price Amazon EKS version upgrade", "serviceType": "Kubernetes cluster upgrade", "provider": {"@id": "https://kubeprune.com/#org"}, "areaServed": [{"@type": "Country", "name": "United States"}, {"@type": "Country", "name": "United Kingdom"}, {"@type": "Country", "name": "Australia"}, {"@type": "Country", "name": "Sweden"}, {"@type": "Country", "name": "Norway"}, {"@type": "Country", "name": "Denmark"}, {"@type": "Country", "name": "Finland"}], "url": "https://kubeprune.com/eks-upgrade/", "offers": [{"@type": "Offer", "name": "EKS upgrade readiness check", "priceCurrency": "USD", "url": "https://kubeprune.com/eks-upgrade/#contact", "description": "Free written check of versions, deprecated APIs, add-ons and node groups for one cluster.", "price": "0", "priceSpecification": {"@type": "UnitPriceSpecification", "price": "0", "priceCurrency": "USD", "valueAddedTaxIncluded": false}}, {"@type": "Offer", "name": "Fixed-price EKS upgrade", "priceCurrency": "USD", "url": "https://kubeprune.com/eks-upgrade/#contact", "description": "Per cluster: deprecated API scan, add-on and node group upgrades, tested rollback plan.", "price": "3900", "priceSpecification": {"@type": "UnitPriceSpecification", "price": "3900", "priceCurrency": "USD", "valueAddedTaxIncluded": false}}]}, {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://kubeprune.com/"}, {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://kubeprune.com/blog/"}, {"@type": "ListItem", "position": 3, "name": "EKS upgrade checklist", "item": "https://kubeprune.com/blog/eks-upgrade-checklist/"}]}, {"@type": "FAQPage", "@id": "https://kubeprune.com/blog/eks-upgrade-checklist/#faq", "mainEntity": [{"@type": "Question", "name": "Can I skip versions when upgrading EKS?", "acceptedAnswer": {"@type": "Answer", "text": "No. EKS upgrades the control plane one minor version at a time, so 1.31 to 1.35 takes four upgrades."}}, {"@type": "Question", "name": "Can an EKS control plane upgrade be stopped once started?", "acceptedAnswer": {"@type": "Answer", "text": "No. Once it starts, it can't be paused or stopped. If health checks fail, EKS reverts the infrastructure deployment and the cluster stays on its previous version."}}, {"@type": "Question", "name": "How long do I have to roll back an EKS upgrade?", "acceptedAnswer": {"@type": "Answer", "text": "7 days after the upgrade completes, by one minor version, for clusters upgraded in place. Clusters automatically upgraded at the end of extended support can't be rolled back."}}, {"@type": "Question", "name": "Do I need to move off Amazon Linux 2 to upgrade?", "acceptedAnswer": {"@type": "Answer", "text": "To go past 1.32, yes. EKS released no AL2 AMIs after 1.32 and stopped publishing them on November 26, 2025. Use Amazon Linux 2023 or Bottlerocket."}}]}]}</script>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="brand" href="/">KubePrune<small>AWS and EKS, trimmed</small></a>
+  <nav class="mainnav" aria-label="Main"><a href="/">Cost audit</a><a href="/eks-upgrade/">EKS upgrade</a><a href="/blog/" aria-current="page">Guides</a><a href="/#contact">Contact</a></nav>
+</div></header>
+<main class="wrap">
+  <nav class="crumb" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/blog/">Guides</a></li><li aria-current="page">EKS upgrade checklist</li></ol></nav>
+  <article>
+  <div class="hero article">
+    <span class="tag">Amazon EKS</span>
+    <h1>EKS upgrade checklist: from 1.31 to 1.35 without breakage</h1>
+    <p class="lede">For platform teams with EKS clusters to move off extended support. The checks, the order and the commands, plus what the 7-day rollback EKS added in July 2026 does and doesn't cover.</p>
+    <p class="meta">By Amine, freelance DevOps engineer · <time datetime="2026-11-03">Updated November 3, 2026</time></p>
+  </div>
+  <div class="answer"><p>An EKS upgrade goes one minor version at a time: inventory deprecated APIs and upgrade insights, align nodes, upgrade the control plane, then nodes and add-ons, and repeat for the next hop. Since July 2026, EKS can roll back to the previous minor version within 7 days, with conditions. For several hops in a row or a critical cluster, a blue/green cluster is still the safest net.</p></div>
+  <nav class="toc" aria-label="In this guide"><strong>In this guide</strong><ol><li><a href="#glance">The checklist at a glance</a></li><li><a href="#inventory">Inventory</a></li><li><a href="#addons">Add-ons</a></li><li><a href="#nodes">Nodes</a></li><li><a href="#pdb">PodDisruptionBudgets</a></li><li><a href="#hops">One version at a time</a></li><li><a href="#rehearsal">Rehearsal</a></li><li><a href="#rollback">Rollback plan</a></li><li><a href="#after">After the upgrade</a></li><li><a href="#faq">FAQ</a></li></ol></nav>
+  <div class="prose">
+
+  <h2 id="glance">The checklist at a glance</h2>
+  <ul class="check">
+    <li>List deprecated or removed APIs in manifests, Helm releases and the live cluster (pluto, kubent).</li>
+    <li>Read the EKS upgrade insights and clear every ERROR and WARNING.</li>
+    <li>Make sure nodes are on the same minor version as the control plane, and on an AMI that exists for the target.</li>
+    <li>Note the compatible versions of VPC CNI, CoreDNS, kube-proxy, the EBS CSI driver and every Helm-installed controller.</li>
+    <li>Find PodDisruptionBudgets that will block node drains.</li>
+    <li>Check that the cluster subnets have at least five free IP addresses.</li>
+    <li>Rehearse the full upgrade on staging and time each step.</li>
+    <li>Write the rollback plan and decide up front: EKS rollback or blue/green.</li>
+    <li>Upgrade the control plane by one version, then nodes, then add-ons. Repeat.</li>
+    <li>After: smoke tests, update kubectl and pipelines, put the next deadline in the calendar.</li>
+  </ul>
+
+  <h2 id="inventory">1. Inventory: what will break</h2>
+  <h3>Deprecated APIs</h3>
+  <p>The Kubernetes deprecated API migration guide is the reference. In the range most teams are dealing with in late 2026, version 1.32 stopped serving <code>flowcontrol.apiserver.k8s.io/v1beta3</code> for FlowSchema and PriorityLevelConfiguration. Check the guide for every version you will cross. Two tools do the inventory:</p>
+<pre><code># Installed Helm releases, against the target version
+pluto detect-helm -owide --target-versions k8s=v1.35.0
+# Manifests in the repository (Kustomize, plain YAML)
+pluto detect-files -d ./deploy --target-versions k8s=v1.35.0
+# Objects in the current cluster (active kubeconfig)
+kubent</code></pre>
+  <p>Pluto reads what is declared; kubent queries the cluster. Both rely on rule lists maintained by hand, so an empty result is a hint, not proof.</p>
+  <h3>EKS upgrade insights</h3>
+  <p>EKS checks each cluster itself: deprecated APIs actually called, kubelet version skew, add-on compatibility.</p>
+<pre><code>aws eks list-insights --cluster-name my-cluster \
+  --filter categories=UPGRADE_READINESS
+aws eks describe-insight --cluster-name my-cluster --id &lt;insight-id&gt;</code></pre>
+  <p>Insights refresh every 24 hours, and you can trigger a manual refresh. A client you fixed yesterday may still show up today.</p>
+  <h3>Nodes and AMIs</h3>
+  <p>Kubernetes 1.32 is the last version for which EKS released Amazon Linux 2 AMIs, and EKS stopped publishing AL2 AMIs on November 26, 2025. Moving to 1.33 or later means nodes on Amazon Linux 2023 or Bottlerocket. That OS migration, with its user-data scripts and agents, deserves its own test.</p>
+
+  <h2 id="addons">2. Add-ons: VPC CNI, CoreDNS, kube-proxy, EBS CSI</h2>
+  <p>Upgrading the control plane doesn't upgrade add-ons. For each, look up the versions compatible with the target:</p>
+<pre><code>aws eks describe-addon-versions --addon-name kube-proxy \
+  --kubernetes-version 1.35 \
+  --query "addons[].addonVersions[].addonVersion" --output text</code></pre>
+  <p>Then, once the control plane and nodes are upgraded:</p>
+<pre><code>aws eks update-addon --cluster-name my-cluster \
+  --addon-name kube-proxy --addon-version &lt;version&gt; \
+  --resolve-conflicts PRESERVE</code></pre>
+  <p>Repeat for vpc-cni, coredns and aws-ebs-csi-driver. Components installed outside EKS add-ons, usually with Helm (AWS Load Balancer Controller, cluster-autoscaler, metrics-server, cert-manager, your ingress controller), have their own compatibility matrices. Read them before the hop, not after. AWS also lists the cluster-autoscaler, the NVIDIA device plugin and kubectl among the components to update yourself.</p>
+
+  <h2 id="nodes">3. Nodes: managed node groups, Karpenter, Auto Mode, Fargate</h2>
+  <ul>
+    <li><strong>Managed node groups:</strong> <code>aws eks update-nodegroup-version</code> replaces nodes in waves and respects PodDisruptionBudgets.</li>
+    <li><strong>Karpenter:</strong> nodes whose EC2NodeClass now resolves to a different AMI are considered drifted and replaced through the eviction API, so PDBs apply. Pods annotated <code>karpenter.sh/do-not-disrupt</code> block it. Check that your Karpenter version supports the target Kubernetes version.</li>
+    <li><strong>EKS Auto Mode:</strong> nodes are updated after the control plane, respecting PDBs.</li>
+    <li><strong>Fargate:</strong> existing pods keep their version until they are redeployed.</li>
+  </ul>
+
+  <h2 id="pdb">4. PodDisruptionBudgets</h2>
+  <p>A badly set PDB blocks drains and makes a node group update fail. Look for the ones that allow no disruption:</p>
+<pre><code>kubectl get pdb -A</code></pre>
+  <p>An ALLOWED DISRUPTIONS value of 0 means either a minAvailable equal to the replica count or an application that is already degraded. The classic case is a single-replica deployment with <code>minAvailable: 1</code>. Scale it to two replicas for the upgrade, or accept the interruption on purpose. Don't delete PDBs to get through.</p>
+
+  <h2 id="hops">5. One minor version at a time</h2>
+  <p>EKS upgrades one minor version per operation: from 1.31 to 1.35 is four full cycles. Once a control plane upgrade starts, it can't be paused or stopped. It needs up to five free IP addresses in the subnets you gave the cluster at creation.</p>
+<pre><code>aws eks update-cluster-version --name my-cluster --kubernetes-version 1.32
+aws eks describe-update --name my-cluster --update-id &lt;update-id&gt;</code></pre>
+  <p>Before each control plane hop, managed and Fargate nodes have to be on the same minor version as the control plane. Since Kubernetes 1.28 the kubelet can be up to three minor versions behind the API server, but leaning on that just piles the risk up at the end. Wait for nodes, add-ons and tests to be green between hops.</p>
+
+  <h2 id="rehearsal">6. Rehearse on staging</h2>
+  <p>A rehearsal is only worth something if staging looks like production: same infrastructure code, same charts at the same versions, same add-ons, same node types. Without a staging cluster, a short-lived copy built from the same Terraform will do. During the rehearsal, time each step to size a realistic window, commit every manifest fix to the repository instead of patching the cluster by hand, and run smoke tests after each hop, not only at the end.</p>
+
+  <h2 id="rollback">7. The rollback plan</h2>
+  <p>Since July 1, 2026, EKS can roll a cluster back to the previous minor version. The conditions, from the AWS documentation:</p>
+  <ul>
+    <li>you must start the rollback within <strong>7 days</strong> of the upgrade completing;</li>
+    <li>the cluster must have reached its version through an in-place upgrade, and you can go back by one minor version only;</li>
+    <li>add-ons are not rolled back automatically, and managed node groups have to be rolled back separately, before the control plane;</li>
+    <li>Fargate nodes can't be rolled back;</li>
+    <li>a cluster upgraded automatically at the end of extended support can't be rolled back.</li>
+  </ul>
+  <p>For a single hop on a cluster you can rebuild, EKS rollback plus a rehearsal is a reasonable plan. For several hops in a row on a critical cluster, a blue/green cluster, built from the same Terraform on the target version and switched over at the load balancer or DNS, is still the safer net. Decide which before you start.</p>
+
+  <h2 id="after">8. After the upgrade</h2>
+  <ul>
+    <li>Smoke tests on every critical path, plus a look at error rates and latency.</li>
+    <li>Update kubectl (within one minor version of the control plane) and CI images that bundle it.</li>
+    <li>Re-run pluto and the insights for the next version, so the next upgrade starts with a list.</li>
+    <li>Put the next end of standard support in the calendar, 90 days early. The <a href="/blog/eks-extended-support-cost/">cost of missing it</a> is $0.50 per cluster-hour.</li>
+  </ul>
+
+  <div class="cta">
+    <p><strong>Rather hand it off?</strong> The fixed-price upgrade is $3,900 per cluster: deprecated API scan, add-on and node group upgrades, every hop to a version in standard support, and a rollback plan tested on staging first. The readiness check is free.</p>
+    <div class="ctas"><a class="btn" href="/eks-upgrade/#offer">See the fixed-price upgrade</a><a class="btn ghost" href="/eks-upgrade/#contact" data-booking>Book a 30-min call</a></div>
+  </div>
+  <p class="fine">KubePrune is independent and not affiliated with Amazon Web Services. Prices are AWS public list prices checked on November 3, 2026; check the pricing pages for your region and date.</p>
+
+  <h2 id="faq">Frequently asked questions</h2>
+  <div class="faq">
+    <details><summary>Can I skip versions when upgrading EKS?</summary><p>No. EKS upgrades the control plane one minor version at a time, so 1.31 to 1.35 takes four upgrades.</p></details>
+    <details><summary>Can an EKS control plane upgrade be stopped once started?</summary><p>No. Once it starts, it can't be paused or stopped. If health checks fail, EKS reverts the infrastructure deployment and the cluster stays on its previous version.</p></details>
+    <details><summary>How long do I have to roll back an EKS upgrade?</summary><p>7 days after the upgrade completes, by one minor version, for clusters upgraded in place. Clusters automatically upgraded at the end of extended support can't be rolled back.</p></details>
+    <details><summary>Do I need to move off Amazon Linux 2 to upgrade?</summary><p>To go past 1.32, yes. EKS released no AL2 AMIs after 1.32 and stopped publishing them on November 26, 2025. Use Amazon Linux 2023 or Bottlerocket.</p></details>
+  </div>
+
+  <h2 id="sources">Sources</h2>
+  <div class="sources">
+  <ol>
+    <li><a href="https://docs.aws.amazon.com/eks/latest/userguide/update-cluster.html" rel="noopener">Amazon EKS: Update existing cluster to new Kubernetes version</a> — one version at a time, IP addresses, add-ons.</li>
+    <li><a href="https://docs.aws.amazon.com/eks/latest/userguide/rollback-cluster.html" rel="noopener">Amazon EKS: Roll back a cluster to a previous Kubernetes version</a> — 7-day window and prerequisites.</li>
+    <li><a href="https://docs.aws.amazon.com/eks/latest/userguide/cluster-insights.html" rel="noopener">Amazon EKS: Cluster insights</a> — upgrade and rollback readiness insights.</li>
+    <li><a href="https://docs.aws.amazon.com/eks/latest/userguide/eks-ami-deprecation-faqs.html" rel="noopener">Amazon EKS: AL2 AMI deprecation FAQs</a> — 1.32 is the last version with AL2 AMIs.</li>
+    <li><a href="https://kubernetes.io/docs/reference/using-api/deprecation-guide/" rel="noopener">Kubernetes: Deprecated API migration guide</a> — removed APIs per version.</li>
+    <li><a href="https://karpenter.sh/docs/concepts/disruption/" rel="noopener">Karpenter: Disruption</a> — drift and do-not-disrupt.</li>
+  </ol>
+  <p class="fine">Checked November 3, 2026.</p>
+  </div>
+
+  <h2>Related</h2>
+  <div class="related">
+    <a href="The real cost of EKS extended support"><strong>/blog/eks-extended-support-cost/</strong><span>$0.60 vs $0.10 per cluster-hour, worked out.</span></a>
+    <a href="Fixed-price EKS upgrade"><strong>/eks-upgrade/</strong><span>$3,900 per cluster.</span></a>
+    <a href="12 AWS cost cuts"><strong>/blog/aws-cost-cuts-without-rearchitecture/</strong><span>Savings that don't need a re-architecture.</span></a>
+  </div>
+  </div>
+  </article>
+</main>
+<footer><div class="wrap">
+  <p>KubePrune: <a href="/">fixed-price AWS cost audits</a> and <a href="/eks-upgrade/">fixed-price EKS upgrades</a> for startups and scale-ups in the US, the UK, Australia and the Nordics. Run by Amine, a freelance DevOps engineer based in France (EU), working with AWS, Google Cloud, Azure, Kubernetes and Terraform. Prices in USD, excluding taxes.</p>
+  <p>AWS prices quoted on this site are public list prices checked on November 3, 2026, before discounts and taxes. KubePrune is independent and not affiliated with Amazon Web Services.</p>
+  <p><a href="/blog/"><strong>Guides</strong></a>: <a href="/blog/eks-extended-support-cost/">The real cost of EKS extended support</a> · <a href="/blog/eks-upgrade-checklist/">EKS upgrade checklist</a> · <a href="/blog/aws-cost-cuts-without-rearchitecture/">12 AWS cost cuts that don't need a re-architecture</a></p>
+</div></footer>
+</body>
+</html>
